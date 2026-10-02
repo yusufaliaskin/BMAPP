@@ -3,7 +3,7 @@
  * sıralama ve sertifika durumu. Gerçek veriler; düzenleme yok, salt görünüm.
  */
 
-import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { GlassCard } from '@/components/glass/GlassCard';
@@ -16,7 +16,7 @@ import { EmptyState } from '@/components/ui/states';
 import {
   useBadges,
   useCertificates,
-  useConfig,
+
   useRankingsFor,
   useStudentBadges,
   useStudentById,
@@ -36,7 +36,6 @@ export default function AdminStudentDetailScreen() {
   const allBadges = useBadges();
   const myBadges = useStudentBadges(student?.id);
   const certificates = useCertificates();
-  const config = useConfig();
 
   if (!student) {
     return (

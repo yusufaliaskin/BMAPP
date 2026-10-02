@@ -69,11 +69,11 @@ export function PressableScale({
     <AnimatedPressable
       disabled={disabled}
       onPressIn={(event) => {
-        scale.value = withSpring(scaleTo, { damping: 22, stiffness: 320 });
+        scale.set(withSpring(scaleTo, { damping: 22, stiffness: 320 }));
         onPressIn?.(event);
       }}
       onPressOut={(event) => {
-        scale.value = withSpring(1, { damping: 18, stiffness: 260 });
+        scale.set(withSpring(1, { damping: 18, stiffness: 260 }));
         onPressOut?.(event);
       }}
       onPress={(event) => {

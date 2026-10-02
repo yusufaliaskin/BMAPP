@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 
 import { CertificateView } from '@/components/certificate/CertificateView';
 import { GlassCard } from '@/components/glass/GlassCard';
@@ -16,7 +16,6 @@ import { EmptyState } from '@/components/ui/states';
 import { useCertificates, useConfig, useCurrentStudent, useStudentById } from '@/data/hooks';
 import { certificateForStudent } from '@/domain/engine/certificates';
 import { createCertificatePdf } from '@/lib/certificate-pdf';
-import { Platform } from 'react-native';
 import { palette, space, type } from '@/theme';
 
 export default function CertificateScreen() {

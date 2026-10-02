@@ -5,7 +5,7 @@
  * Çıkışta onay istenir; test tamamlanınca sonuç motor tarafından hesaplanıp kaydedilir.
  */
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Redirect, useRouter } from 'expo-router';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
@@ -43,10 +43,7 @@ export default function QuestionScreen() {
   const [showExit, setShowExit] = useState(false);
 
   const question = session?.plan.questions[index];
-  const liveScore = useMemo(
-    () => (session ? gradeTest(answers, session.plan.questions).score : 0),
-    [answers, session],
-  );
+  const liveScore = session ? gradeTest(answers, session.plan.questions).score : 0;
 
   if (!session || !question) return <Redirect href="/test/start" />;
 
@@ -82,7 +79,6 @@ export default function QuestionScreen() {
         classId: session.classId,
         attempt: session.plan.attempt,
         startedAt: session.startedAt,
-        durationMs: Date.now() - new Date(session.startedAt).getTime(),
         questions: session.plan.questions,
         answers,
       });

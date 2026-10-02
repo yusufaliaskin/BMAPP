@@ -5,9 +5,8 @@
 
 import { useState } from 'react';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Platform } from 'react-native';
 
 import { GlassCard } from '@/components/glass/GlassCard';
 import { Button } from '@/components/ui/Button';

@@ -24,7 +24,7 @@ import {
 import { rankOf } from '@/domain/engine/ranking';
 import { formatDuration } from '@/lib/format';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
-import { palette, radius, space, type } from '@/theme';
+import { palette, space, type } from '@/theme';
 
 export default function ResultScreen() {
   const router = useRouter();

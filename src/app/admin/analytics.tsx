@@ -16,7 +16,7 @@ import { EmptyState } from '@/components/ui/states';
 import { useConfig, useQuestions, useResults, useStudents, useTopics } from '@/data/hooks';
 import { representativeResult } from '@/domain/engine/ranking';
 import { GRADES } from '@/domain/models';
-import { glassSurface, palette, radius, space, type } from '@/theme';
+import { palette, space, type } from '@/theme';
 
 interface QuestionStat {
   questionId: string;

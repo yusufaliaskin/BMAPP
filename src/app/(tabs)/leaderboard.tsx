@@ -7,8 +7,6 @@ import { useState } from 'react';
 import { Redirect, useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { GlassCard } from '@/components/glass/GlassCard';
-import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { LeaderboardRow } from '@/components/ui/LeaderboardRow';
 import { Reveal } from '@/components/ui/Reveal';

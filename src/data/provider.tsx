@@ -23,7 +23,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    setPhase('loading');
     initStore()
       .then(() => {
         if (mounted) setPhase('ready');
@@ -65,7 +64,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             <ErrorView
               title="Uygulama açılamadı"
               message="Veriler yüklenirken bir sorun oluştu. Tekrar denemek sorunu genellikle çözer."
-              onRetry={() => setAttempt((value) => value + 1)}
+              onRetry={() => {
+                setPhase('loading');
+                setAttempt((value) => value + 1);
+              }}
             />
           )}
         </View>

@@ -13,7 +13,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { motion, palette, radius, surface } from '@/theme';
+import { motion, palette, surface } from '@/theme';
 
 interface ProgressBarProps {
   progress: number;

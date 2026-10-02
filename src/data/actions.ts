@@ -71,7 +71,6 @@ export interface SaveResultInput {
   classId: string;
   attempt: number;
   startedAt: string;
-  durationMs: number;
   questions: Question[];
   answers: AnswerInput[];
 }
@@ -90,7 +89,8 @@ export function saveTestResult(input: SaveResultInput): SaveResultOutcome {
   }
 
   const graded = gradeTest(input.answers, input.questions);
-  const completedAt = new Date().toISOString();
+  const completedDate = new Date();
+  const completedAt = completedDate.toISOString();
   const result: TestResult = {
     id: makeId(),
     studentId: input.studentId,
@@ -99,7 +99,7 @@ export function saveTestResult(input: SaveResultInput): SaveResultOutcome {
     attempt: input.attempt,
     startedAt: input.startedAt,
     completedAt,
-    durationMs: Math.max(0, input.durationMs),
+    durationMs: Math.max(0, completedDate.getTime() - new Date(input.startedAt).getTime()),
     answers: graded.answers,
     correct: graded.correct,
     wrong: graded.wrong,

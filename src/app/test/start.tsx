@@ -16,7 +16,7 @@ import {
   useCurrentStudent,
   useGradeSetting,
   useQuestions,
-  useStudentResults,
+
 } from '@/data/hooks';
 import { buildTestPlan } from '@/domain/engine/quiz';
 import type { Difficulty } from '@/domain/models';
@@ -35,7 +35,6 @@ export default function TestStartScreen() {
   const grade = student?.grade ?? 1;
   const settings = useGradeSetting(grade);
   const questions = useQuestions();
-  const results = useStudentResults(student?.id);
   const availability = useAttemptAvailability(student?.id, grade);
 
   if (!student) return <Redirect href="/onboarding/welcome" />;

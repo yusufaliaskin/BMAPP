@@ -9,6 +9,7 @@ import type {
   AvatarCharacter,
   BadgeDef,
   Certificate,
+  DBState,
   Grade,
   GradeSettings,
   Question,
@@ -23,7 +24,6 @@ import { getState, subscribe } from './db';
 import { rankForGrade } from '../domain/engine/ranking';
 import { canAttempt } from '../domain/engine/quiz';
 import { seedCharacters } from '../domain/content/seed';
-import type { DBState } from '../domain/models';
 
 export function useDB(): DBState {
   return useSyncExternalStore(subscribe, getState, getState);

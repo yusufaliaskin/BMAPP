@@ -10,7 +10,7 @@ import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
+
   withTiming,
 } from 'react-native-reanimated';
 

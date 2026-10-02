@@ -21,8 +21,7 @@ import { TextField } from '@/components/ui/TextField';
 import { upsertQuestion } from '@/data/actions';
 import { useQuestions, useTopics } from '@/data/hooks';
 import type { Difficulty, Grade, Question } from '@/domain/models';
-import { makeId } from '@/lib/pin';
-import { glassSurface, palette, radius, space, type } from '@/theme';
+import { palette, radius, space, type } from '@/theme';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 

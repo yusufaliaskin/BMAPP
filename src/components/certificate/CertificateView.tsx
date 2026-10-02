@@ -40,8 +40,7 @@ export function CertificateView({ certificate, student, config }: CertificateVie
           </Text>
           <View style={styles.divider} />
           <Text style={[type.bodySemi, styles.center, { color: palette.ink }]}>
-            {certificate.grade}. Sınıflar {certificate.rank}.'liği başarısını
-            belgelemek amacıyla verilmiştir.
+            {`${certificate.grade}. Sınıflar ${certificate.rank}.'liği başarısını belgelemek amacıyla verilmiştir.`}
           </Text>
           <View style={styles.metaRow}>
             <View style={styles.metaChip}>
