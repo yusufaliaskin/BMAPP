@@ -35,6 +35,49 @@ export const palette = {
 
   amber: '#F5A524',
   amberSoft: '#FFF3D6',
+  track: 'rgba(23,35,63,0.10)',
+} as const;
+
+/** Sıralama madalyaları — yalnız ilk üç derece (§16). */
+export const medal = {
+  gold: '#E89010',
+  goldSoft: '#FFF0C8',
+  silver: '#8293B4',
+  silverSoft: '#EDF1F8',
+  bronze: '#C77B3F',
+  bronzeSoft: '#F9E7D6',
+} as const;
+
+/** Gölge ön ayarları — kartlar ve aksiyonlar için tek ölçek. */
+export const shadows = {
+  card: {
+    shadowColor: 'rgba(23,35,63,0.12)',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 1,
+    shadowRadius: 24,
+    elevation: 6,
+  },
+  soft: {
+    shadowColor: 'rgba(23,35,63,0.08)',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 14,
+    elevation: 3,
+  },
+  glow: {
+    shadowColor: 'rgba(91,107,245,0.45)',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 1,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  glowReward: {
+    shadowColor: 'rgba(245,165,36,0.4)',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 18,
+    elevation: 6,
+  },
 } as const;
 
 export const surface = {
@@ -92,6 +135,7 @@ export const type = {
   h3: { fontFamily: fonts.display, fontSize: 18, lineHeight: 24 },
   body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 23 },
   bodySemi: { fontFamily: fonts.bodySemi, fontSize: 16, lineHeight: 23 },
+  bodyBold: { fontFamily: fonts.bodyBold, fontSize: 16, lineHeight: 23 },
   label: { fontFamily: fonts.bodyBold, fontSize: 14, lineHeight: 19 },
   caption: { fontFamily: fonts.bodySemi, fontSize: 13, lineHeight: 18 },
   overline: {

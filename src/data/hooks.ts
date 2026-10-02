@@ -22,6 +22,7 @@ import type {
 import { getState, subscribe } from './db';
 import { rankForGrade } from '../domain/engine/ranking';
 import { canAttempt } from '../domain/engine/quiz';
+import { seedCharacters } from '../domain/content/seed';
 import type { DBState } from '../domain/models';
 
 export function useDB(): DBState {
@@ -134,13 +135,9 @@ export function useCharacters(): AvatarCharacter[] {
   const db = useDB();
   return useMemo(() => {
     void db;
-    return CHARACTERS;
+    return seedCharacters;
   }, [db]);
 }
-
-/** Karakter listesi sabit içerik — store'dan bağımsız, tek kaynak için burada da tutulur. */
-import { seedCharacters } from '../domain/content/seed';
-const CHARACTERS = seedCharacters;
 
 export function useRankingsFor(grade: Grade, section: string | null): RankEntry[] {
   const data = useDB().data;

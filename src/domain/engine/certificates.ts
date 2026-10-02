@@ -81,9 +81,11 @@ export function issueTop3(
 export function certificateForStudent(
   certificates: Certificate[],
   studentId: string,
-  period: string,
+  period?: string,
 ): Certificate | undefined {
-  return certificates.find((c) => c.studentId === studentId && c.period === period);
+  return certificates.find(
+    (c) => c.studentId === studentId && (period === undefined || c.period === period),
+  );
 }
 
 export function medalForRank(rank: number): string {
