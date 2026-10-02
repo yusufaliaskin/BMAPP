@@ -19,6 +19,10 @@ interface GlassCardProps {
   /** Üst kenarda ince ışık yansıması — yalnız öne çıkan kartlarda. */
   glint?: boolean;
   radiusValue?: number;
+  /** Kenarlık rengi (ör. seçili durum) — verilirse 2px çizilir. */
+  outline?: string;
+  /** İç katman dolgu rengi (ör. seçili durumda marka rengi); cam beyazlığını değiştirir. */
+  tint?: string;
 }
 
 const WHITE_TINT: Record<GlassLevel, string> = {
@@ -41,6 +45,8 @@ export function GlassCard({
   padded = true,
   glint = false,
   radiusValue = radius.card,
+  outline,
+  tint,
 }: GlassCardProps) {
   return (
     <View style={[shadows.card, { borderRadius: radiusValue }, style]}>
@@ -50,7 +56,8 @@ export function GlassCard({
           {
             borderRadius: radiusValue,
             backgroundColor: surface.glass,
-            borderColor: surface.glassBorderSoft,
+            borderColor: outline ?? surface.glassBorderSoft,
+            borderWidth: outline ? 2 : 1,
           },
         ]}
       >
@@ -63,7 +70,11 @@ export function GlassCard({
           />
         ) : null}
         <View
-          style={[StyleSheet.absoluteFill, styles.noEvents, { backgroundColor: WHITE_TINT[level] }]}
+          style={[
+            StyleSheet.absoluteFill,
+            styles.noEvents,
+            { backgroundColor: tint ?? WHITE_TINT[level] },
+          ]}
         />
         {glint ? (
           <LinearGradient

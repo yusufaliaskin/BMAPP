@@ -128,9 +128,9 @@ export const seedQuestions: Question[] = [
     grade: 1,
     topicId: 'ekran',
     difficulty: 'easy',
-    visual: '🛑🌙',
+    visual: '🤔',
     text: 'Hangisi daha sağlıklı?',
-    options: ['🟢 Mola vermek', '🔴 Saatlerce ekrana bakmak'],
+    options: ['😊 Mola vermek', '😫 Saatlerce ekrana bakmak'],
     correctIndex: 0,
     points: 10,
     fact: 'Mola vermek bedenimize iyi gelir.',
@@ -141,7 +141,7 @@ export const seedQuestions: Question[] = [
     grade: 1,
     topicId: 'teknoloji',
     difficulty: 'easy',
-    visual: '🏃⚽',
+    visual: '☀️',
     text: 'Ekransız oyun zamanı! Ne oynayabilirsin?',
     options: ['⚽ Top oynamak', '📱 Telefonla oynamak'],
     correctIndex: 0,
@@ -154,7 +154,7 @@ export const seedQuestions: Question[] = [
     grade: 1,
     topicId: 'sigara',
     difficulty: 'easy',
-    visual: '🚭🌳',
+    visual: '🚬',
     text: 'Sigara içen birini gördün. Ne yapmalısın?',
     options: ['🚶 Uzaklaşıp temiz hava alırım', '👀 Yanına oturup bakarım'],
     correctIndex: 0,
@@ -167,7 +167,7 @@ export const seedQuestions: Question[] = [
     grade: 1,
     topicId: 'zararli',
     difficulty: 'easy',
-    visual: '🎁❓',
+    visual: '🎁',
     text: 'Ne olduğunu bilmediğin bir şey sana verildi. Ne yapmalısın?',
     options: ['🙅 Almam ve büyüğüme söylerim', '🤲 Alıp tadına bakarım'],
     correctIndex: 0,
@@ -182,7 +182,7 @@ export const seedQuestions: Question[] = [
     grade: 2,
     topicId: 'ekran',
     difficulty: 'easy-medium',
-    visual: '📱😴',
+    visual: '🛏️📱',
     text: 'Yatmadan önce telefonla oynamak neye sebep olur?',
     options: ['😴 Uykumuz bozulur', '💪 Daha güçlü oluruz', '🌟 Hiçbir şey olmaz'],
     correctIndex: 0,
@@ -195,7 +195,7 @@ export const seedQuestions: Question[] = [
     grade: 2,
     topicId: 'ekran',
     difficulty: 'easy-medium',
-    visual: '⏰🍎',
+    visual: '🕐',
     text: 'Ekran molasında ne yapabilirsin?',
     options: ['🏃 Hareket edip su içerim', '📺 Televizyon açarım', '🎮 Oyuna devam ederim'],
     correctIndex: 0,
@@ -208,7 +208,7 @@ export const seedQuestions: Question[] = [
     grade: 2,
     topicId: 'teknoloji',
     difficulty: 'easy-medium',
-    visual: '💻❤️',
+    visual: '💻',
     text: 'Teknolojiyi en iyi nasıl kullanırız?',
     options: ['⚖️ Dengeli ve faydalı işler için', '🌙 Gece boyunca', '😠 Kızgın olduğumuzda'],
     correctIndex: 0,
@@ -221,7 +221,7 @@ export const seedQuestions: Question[] = [
     grade: 2,
     topicId: 'teknoloji',
     difficulty: 'easy-medium',
-    visual: '🔒🙋',
+    visual: '💬👤',
     text: 'İnternette tanımadığın biri "adresini söyle" dedi. Ne yapmalısın?',
     options: ['🙅 Söylemem, büyüğüme haber veririm', '📝 Hemen yazarım', '🤫 Sır olarak saklarım'],
     correctIndex: 0,
@@ -234,7 +234,7 @@ export const seedQuestions: Question[] = [
     grade: 2,
     topicId: 'sigara',
     difficulty: 'easy-medium',
-    visual: '🚭🙉',
+    visual: '🤝🚬',
     text: 'Arkadaşın "sigara denemek ister misin?" dedi. Ne dersin?',
     options: ['❌ Hayır derim', '🙈 Bir kere denerim', '😎 Havalı bulurum'],
     correctIndex: 0,
@@ -247,7 +247,7 @@ export const seedQuestions: Question[] = [
     grade: 2,
     topicId: 'zararli',
     difficulty: 'easy-medium',
-    visual: '🧴⚠️',
+    visual: '🧴',
     text: 'Evde tanımadığın bir kutu buldun. Ne yapmalısın?',
     options: ['🙋 Anneme babama gösteririm', '👅 Tadına bakarım', '🎒 Çantama koyarım'],
     correctIndex: 0,
@@ -260,7 +260,7 @@ export const seedQuestions: Question[] = [
     grade: 2,
     topicId: 'yapayzeka',
     difficulty: 'easy-medium',
-    visual: '🤖⭐',
+    visual: '🤖',
     text: 'Yapay zekâ sana bir şey söyledi. Her zaman doğru mu?',
     options: ['🧠 Bazen yanılabilir, kontrol ederim', '✅ Her şeyi doğrudur', '🚫 Hiç kullanmam'],
     correctIndex: 0,
@@ -275,7 +275,7 @@ export const seedQuestions: Question[] = [
     grade: 3,
     topicId: 'ekran',
     difficulty: 'medium',
-    visual: '📱📊',
+    visual: '⏳📱',
     text: 'Günde ne kadar ekran süresi daha dengeli?',
     options: ['⏰ Sınırlı ve belli saatlerde', '🌞 Tüm gün', '🌙 Gece sabaha kadar'],
     correctIndex: 0,
@@ -288,7 +288,7 @@ export const seedQuestions: Question[] = [
     grade: 3,
     topicId: 'ekran',
     difficulty: 'medium',
-    visual: '🤸📵',
+    visual: '📱',
     text: 'Ekran molası vermezsek ne olur?',
     options: ['🤕 Gözlerimiz ve bedenimiz yorulur', '🎉 Hiçbir sorun olmaz', '💪 Daha zeki oluruz'],
     correctIndex: 0,
@@ -314,7 +314,7 @@ export const seedQuestions: Question[] = [
     grade: 3,
     topicId: 'teknoloji',
     difficulty: 'medium',
-    visual: '🔑🛡️',
+    visual: '🔑',
     text: 'İnternette güçlü şifre neden önemlidir?',
     options: ['🔒 Bilgilerimizi korur', '🎲 Şans getirir', '📛 Hiç gerekli değildir'],
     correctIndex: 0,
@@ -327,7 +327,7 @@ export const seedQuestions: Question[] = [
     grade: 3,
     topicId: 'teknoloji',
     difficulty: 'medium',
-    visual: '🎮🧭',
+    visual: '🎮',
     text: 'Oyun oynarken sürenin farkına varmazsan ne yapmalısın?',
     options: ['⏰ Önceden alarm kurarım', '🚫 Oyunu tamamen bırakırım', '🌙 Daha da oynarım'],
     correctIndex: 0,
@@ -340,7 +340,7 @@ export const seedQuestions: Question[] = [
     grade: 3,
     topicId: 'sigara',
     difficulty: 'medium',
-    visual: '🚭🚸',
+    visual: '🚬',
     text: 'Sigara dumanı olan bir yerde ne yapmalısın?',
     options: ['🌬️ Uzaklaşıp temiz hava alırım', '🫁 Derin nefes alırım', '🪑 Orada oturmaya devam ederim'],
     correctIndex: 0,
@@ -353,7 +353,7 @@ export const seedQuestions: Question[] = [
     grade: 3,
     topicId: 'sigara',
     difficulty: 'medium',
-    visual: '💪🚭',
+    visual: '💬🚬',
     text: 'Sigara içen biri "zararı yok" derse ne düşünmelisin?',
     options: ['🧠 Bilim zararlı olduğunu söylüyor', '🤔 Belki doğrudur', '😮 Ona inanırım'],
     correctIndex: 0,
@@ -366,7 +366,7 @@ export const seedQuestions: Question[] = [
     grade: 3,
     topicId: 'zararli',
     difficulty: 'medium',
-    visual: '🚪🕵️',
+    visual: '❓🎁',
     text: 'Tanımadığın biri sana bir şey verirse ne yapmalısın?',
     options: ['🙅 Reddedip güvendiğim büyüğüme söylerim', '🤝 Teşekkür edip alırım', '🤐 Kimseye söylemem'],
     correctIndex: 0,
@@ -379,7 +379,7 @@ export const seedQuestions: Question[] = [
     grade: 3,
     topicId: 'zararli',
     difficulty: 'medium',
-    visual: '🧪🎒',
+    visual: '🧪',
     text: 'Okulda çantanda olmayan bir madde buldun. Ne yapmalısın?',
     options: ['👩‍🏫 Öğretmenime teslim ederim', '👃 Koklarım', '🤫 Cebime koyarım'],
     correctIndex: 0,
@@ -392,7 +392,7 @@ export const seedQuestions: Question[] = [
     grade: 3,
     topicId: 'yapayzeka',
     difficulty: 'medium',
-    visual: '🤖🧠',
+    visual: '🤖📚',
     text: 'Yapay zekâdan ödev için yardım isterken en doğru yol hangisi?',
     options: ['💡 Fikir alıp kendim yazarım', '📋 Kopyalayıp aynen veririm', '🤷 Hiç düşünmeden kullanırım'],
     correctIndex: 0,
@@ -407,7 +407,7 @@ export const seedQuestions: Question[] = [
     grade: 4,
     topicId: 'ekran',
     difficulty: 'medium-hard',
-    visual: '📱🧠',
+    visual: '📱',
     text: 'Çok fazla ekran kullanmak beynimizi nasıl etkiler?',
     options: ['😴 Odaklanmayı ve uykuyu zorlaştırır', '🚀 Her zaman hızlandırır', '🌟 Hiç etkilemez'],
     correctIndex: 0,
@@ -420,7 +420,7 @@ export const seedQuestions: Question[] = [
     grade: 4,
     topicId: 'ekran',
     difficulty: 'medium-hard',
-    visual: '🎯⏳',
+    visual: '📱🕐',
     text: 'Ekran süresini azaltmak için en iyi yöntem hangisi?',
     options: ['📅 Günlük plan ve süre sınırı', '🚷 Teknolojiyi tamamen bırakmak', '🌙 Sadece gece kullanmak'],
     correctIndex: 0,
@@ -433,7 +433,7 @@ export const seedQuestions: Question[] = [
     grade: 4,
     topicId: 'ekran',
     difficulty: 'medium-hard',
-    visual: '💬😞',
+    visual: '🎮📚',
     text: 'Arkadaşın sürekli oyun oynadığı için derslerine çalışamıyor. Ona ne önerirsin?',
     options: [
       '⏰ Birlikte dengeli bir plan yapmayı',
@@ -451,7 +451,7 @@ export const seedQuestions: Question[] = [
     grade: 4,
     topicId: 'teknoloji',
     difficulty: 'medium-hard',
-    visual: '🌐🧭',
+    visual: '🌐❓',
     text: 'İnternette gördüğün her bilgi doğru mu?',
     options: [
       '❌ Hayır, güvenilir kaynaklardan kontrol ederim',
@@ -468,7 +468,7 @@ export const seedQuestions: Question[] = [
     grade: 4,
     topicId: 'teknoloji',
     difficulty: 'medium-hard',
-    visual: '🔐🙅',
+    visual: '🔐👥',
     text: 'Şifreni arkadaşın istedi. Ne yapmalısın?',
     options: [
       '🚫 Paylaşmam, sadece ailemle konuşurum',
@@ -486,10 +486,10 @@ export const seedQuestions: Question[] = [
     grade: 4,
     topicId: 'teknoloji',
     difficulty: 'medium-hard',
-    visual: '🧘📵',
+    visual: '⚖️📱',
     text: 'Dijital denge ne demektir?',
     options: [
-      '⚖️ Teknolojiyi faydalı işler için ölçülü kullanmak',
+      '🧭 Teknolojiyi faydalı işler için ölçülü kullanmak',
       '📱 Telefonu her an elimizde tutmak',
       '🚫 Hiç teknoloji kullanmamak',
     ],
@@ -503,7 +503,7 @@ export const seedQuestions: Question[] = [
     grade: 4,
     topicId: 'sigara',
     difficulty: 'medium-hard',
-    visual: '🚭🔬',
+    visual: '🚬',
     text: 'Sigaranın ilk denemede bile zarar vermesinin nedeni nedir?',
     options: [
       '⚠️ İçindeki maddeler bağımlılık yapar',
@@ -520,7 +520,7 @@ export const seedQuestions: Question[] = [
     grade: 4,
     topicId: 'sigara',
     difficulty: 'medium-hard',
-    visual: '🤝🛑',
+    visual: '🚬👥',
     text: 'Sigara içen bir arkadaşın var. Ona nasıl yardım edebilirsin?',
     options: [
       '💙 Nazikçe uyarır, bir büyüğümüze söylemesini öneririm',
@@ -537,10 +537,10 @@ export const seedQuestions: Question[] = [
     grade: 4,
     topicId: 'zararli',
     difficulty: 'medium-hard',
-    visual: '🎭🛡️',
+    visual: '🎭',
     text: 'Güvenli seçim nedir?',
     options: [
-      '✅ Bilmediğim hiçbir maddeyi kullanmamak, büyüğüme danışmak',
+      '🙋 Bilmediğim hiçbir maddeyi kullanmamak, büyüğüme danışmak',
       '😎 Arkadaşlar ne yapıyorsa onu yapmak',
       '🌙 Gizlice denemek',
     ],
@@ -554,7 +554,7 @@ export const seedQuestions: Question[] = [
     grade: 4,
     topicId: 'zararli',
     difficulty: 'medium-hard',
-    visual: '📞🆘',
+    visual: '❓',
     text: 'Böyle bir durumla karşılaşırsan ilk adım ne olmalı?',
     options: [
       '🗣️ Güvendiğim bir büyüğüme hemen anlatmak',
@@ -571,7 +571,7 @@ export const seedQuestions: Question[] = [
     grade: 4,
     topicId: 'yapayzeka',
     difficulty: 'medium-hard',
-    visual: '🤖📚',
+    visual: '🤖❓',
     text: 'Yapay zekânın verdiği bilgiler neden yanlış olabilir?',
     options: [
       '🧠 Öğrendiği veriler eksik veya hatalı olabilir',
@@ -588,7 +588,7 @@ export const seedQuestions: Question[] = [
     grade: 4,
     topicId: 'yapayzeka',
     difficulty: 'medium-hard',
-    visual: '🔒🧑',
+    visual: '🤖💬',
     text: 'Yapay zekâ sohbetine kişisel bilgi yazmak doğru mu?',
     options: [
       '🚫 Hayır, adres ve okul gibi bilgileri paylaşmam',
@@ -610,4 +610,215 @@ export function buildSeedData(): Omit<DBData, 'results' | 'certificates' | 'admi
     gradeSettings: seedGradeSettings,
     config: defaultConfig(),
   };
+}
+
+
+export interface QuestionContentFix {
+  id: string;
+  fromVisual: string;
+  toVisual: string;
+  optionFixes?: { from: string; to: string }[];
+}
+
+/**
+ * v2.3 içerik düzeltmesi — soru görselleri sahne-bazlı hale getirildi,
+ * cevabı ele veren seçenek emojileri değiştirildi. Mevcut belgeler yüklenirken
+ * uygulanır; admin'in kendi düzenlemelerine dokunmaz (yalnız eski değerle birebir
+ * eşleşiyorsa değiştirir).
+ */
+export const questionContentFixes: QuestionContentFix[] = [
+  {
+    id: 'g1-ekran-2',
+    fromVisual: '🛑🌙',
+    toVisual: '🤔',
+    optionFixes: [
+      { from: '🟢 Mola vermek', to: '😊 Mola vermek' },
+      { from: '🔴 Saatlerce ekrana bakmak', to: '😫 Saatlerce ekrana bakmak' },
+    ],
+  },
+  {
+    id: 'g1-teknoloji-1',
+    fromVisual: '🏃⚽',
+    toVisual: '☀️',
+  },
+  {
+    id: 'g1-sigara-1',
+    fromVisual: '🚭🌳',
+    toVisual: '🚬',
+  },
+  {
+    id: 'g1-zararli-1',
+    fromVisual: '🎁❓',
+    toVisual: '🎁',
+  },
+  {
+    id: 'g2-ekran-1',
+    fromVisual: '📱😴',
+    toVisual: '🛏️📱',
+  },
+  {
+    id: 'g2-ekran-2',
+    fromVisual: '⏰🍎',
+    toVisual: '🕐',
+  },
+  {
+    id: 'g2-teknoloji-1',
+    fromVisual: '💻❤️',
+    toVisual: '💻',
+  },
+  {
+    id: 'g2-teknoloji-2',
+    fromVisual: '🔒🙋',
+    toVisual: '💬👤',
+  },
+  {
+    id: 'g2-sigara-1',
+    fromVisual: '🚭🙉',
+    toVisual: '🤝🚬',
+  },
+  {
+    id: 'g2-zararli-1',
+    fromVisual: '🧴⚠️',
+    toVisual: '🧴',
+  },
+  {
+    id: 'g2-yapayzeka-1',
+    fromVisual: '🤖⭐',
+    toVisual: '🤖',
+  },
+  {
+    id: 'g3-ekran-1',
+    fromVisual: '📱📊',
+    toVisual: '⏳📱',
+  },
+  {
+    id: 'g3-ekran-2',
+    fromVisual: '🤸📵',
+    toVisual: '📱',
+  },
+  {
+    id: 'g3-teknoloji-1',
+    fromVisual: '🔑🛡️',
+    toVisual: '🔑',
+  },
+  {
+    id: 'g3-teknoloji-2',
+    fromVisual: '🎮🧭',
+    toVisual: '🎮',
+  },
+  {
+    id: 'g3-sigara-1',
+    fromVisual: '🚭🚸',
+    toVisual: '🚬',
+  },
+  {
+    id: 'g3-sigara-2',
+    fromVisual: '💪🚭',
+    toVisual: '💬🚬',
+  },
+  {
+    id: 'g3-zararli-1',
+    fromVisual: '🚪🕵️',
+    toVisual: '❓🎁',
+  },
+  {
+    id: 'g3-zararli-2',
+    fromVisual: '🧪🎒',
+    toVisual: '🧪',
+  },
+  {
+    id: 'g3-yapayzeka-1',
+    fromVisual: '🤖🧠',
+    toVisual: '🤖📚',
+  },
+  {
+    id: 'g4-ekran-1',
+    fromVisual: '📱🧠',
+    toVisual: '📱',
+  },
+  {
+    id: 'g4-ekran-2',
+    fromVisual: '🎯⏳',
+    toVisual: '📱🕐',
+  },
+  {
+    id: 'g4-ekran-3',
+    fromVisual: '💬😞',
+    toVisual: '🎮📚',
+  },
+  {
+    id: 'g4-teknoloji-1',
+    fromVisual: '🌐🧭',
+    toVisual: '🌐❓',
+  },
+  {
+    id: 'g4-teknoloji-2',
+    fromVisual: '🔐🙅',
+    toVisual: '🔐👥',
+  },
+  {
+    id: 'g4-teknoloji-3',
+    fromVisual: '🧘📵',
+    toVisual: '⚖️📱',
+    optionFixes: [
+      { from: '⚖️ Teknolojiyi faydalı işler için ölçülü kullanmak', to: '🧭 Teknolojiyi faydalı işler için ölçülü kullanmak' },
+    ],
+  },
+  {
+    id: 'g4-sigara-1',
+    fromVisual: '🚭🔬',
+    toVisual: '🚬',
+  },
+  {
+    id: 'g4-sigara-2',
+    fromVisual: '🤝🛑',
+    toVisual: '🚬👥',
+  },
+  {
+    id: 'g4-zararli-1',
+    fromVisual: '🎭🛡️',
+    toVisual: '🎭',
+    optionFixes: [
+      { from: '✅ Bilmediğim hiçbir maddeyi kullanmamak, büyüğüme danışmak', to: '🙋 Bilmediğim hiçbir maddeyi kullanmamak, büyüğüme danışmak' },
+    ],
+  },
+  {
+    id: 'g4-zararli-2',
+    fromVisual: '📞🆘',
+    toVisual: '❓',
+  },
+  {
+    id: 'g4-yapayzeka-1',
+    fromVisual: '🤖📚',
+    toVisual: '🤖❓',
+  },
+  {
+    id: 'g4-yapayzeka-2',
+    fromVisual: '🔒🧑',
+    toVisual: '🤖💬',
+  },
+];
+
+export function applyQuestionContentFixes(questions: Question[]): boolean {
+  let changed = false;
+  for (const question of questions) {
+    const fix = questionContentFixes.find((f) => f.id === question.id);
+    if (!fix) continue;
+    if (fix.fromVisual && question.visual === fix.fromVisual) {
+      question.visual = fix.toVisual;
+      changed = true;
+    }
+    if (fix.optionFixes) {
+      for (const optFix of fix.optionFixes) {
+        const index = question.options.indexOf(optFix.from);
+        if (index >= 0) {
+          const next = [...question.options];
+          next[index] = optFix.to;
+          question.options = next;
+          changed = true;
+        }
+      }
+    }
+  }
+  return changed;
 }

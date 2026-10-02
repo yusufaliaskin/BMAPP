@@ -100,11 +100,27 @@ export default function GradeScreen() {
                   >
                     <GlassCard
                       padded={false}
-                      style={[styles.cellCard, isSelected ? styles.cellSelected : null]}
+                      style={styles.cellCard}
+                      outline={isSelected ? palette.primary : undefined}
+                      tint={isSelected ? palette.primary : undefined}
                     >
                       <View style={styles.cellInner}>
-                        <Text style={[type.h2, { color: palette.ink }]}>{item.section}</Text>
-                        <Text style={[type.caption, { color: palette.inkFaint }]}>
+                        <Text
+                          style={[
+                            type.h2,
+                            { color: isSelected ? palette.white : palette.ink },
+                          ]}
+                        >
+                          {item.section}
+                        </Text>
+                        <Text
+                          style={[
+                            type.caption,
+                            {
+                              color: isSelected ? 'rgba(255,255,255,0.88)' : palette.inkFaint,
+                            },
+                          ]}
+                        >
                           {item.grade}/{item.section}
                         </Text>
                       </View>
@@ -113,6 +129,11 @@ export default function GradeScreen() {
                 );
               })}
             </View>
+            {section !== null && grade !== null ? (
+              <Text style={[type.bodySemi, styles.center, { color: palette.success }]}>
+                ✅ Seçilen şube: {grade}/{section}
+              </Text>
+            ) : null}
           </Reveal>
         ) : (
           <Reveal delay={130}>
@@ -158,10 +179,6 @@ const styles = StyleSheet.create({
   },
   cellCard: {
     borderRadius: radius.lg,
-  },
-  cellSelected: {
-    borderColor: palette.primary,
-    backgroundColor: palette.primarySoft,
   },
   cellInner: {
     alignItems: 'center',
