@@ -91,14 +91,15 @@ export default function AdminQuestionsScreen() {
               const topic = topics.find((t) => t.id === question.topicId);
               return (
                 <Reveal key={question.id} delay={Math.min(index * 25, 250)}>
-                  <PressableScale
-                    accessibilityRole="button"
-                    accessibilityLabel={`Soruyu düzenle: ${question.text}`}
-                    haptic="light"
-                    onPress={() => router.push(`/admin/question/${question.id}`)}
-                  >
-                    <GlassCard padded={false}>
-                      <View style={[styles.row, !question.isActive ? styles.inactive : null]}>
+                  <GlassCard padded={false}>
+                    <View style={[styles.row, !question.isActive ? styles.inactive : null]}>
+                      <PressableScale
+                        accessibilityRole="button"
+                        accessibilityLabel={`Soruyu düzenle: ${question.text}`}
+                        haptic="light"
+                        onPress={() => router.push(`/admin/question/${question.id}`)}
+                        style={styles.rowPress}
+                      >
                         <Text style={styles.visual} maxFontSizeMultiplier={1.1}>
                           {question.visual}
                         </Text>
@@ -111,16 +112,16 @@ export default function AdminQuestionsScreen() {
                             {DIFFICULTY_LABEL[question.difficulty]} · {question.points} puan
                           </Text>
                         </View>
-                        <Switch
-                          accessibilityLabel={`${question.isActive ? 'Pasife al' : 'Aktif et'}: ${question.text}`}
-                          value={question.isActive}
-                          onValueChange={(value) => setQuestionActive(question.id, value)}
-                          trackColor={{ false: palette.track, true: palette.mintSoft }}
-                          thumbColor={question.isActive ? palette.success : palette.inkFaint}
-                        />
-                      </View>
-                    </GlassCard>
-                  </PressableScale>
+                      </PressableScale>
+                      <Switch
+                        accessibilityLabel={`${question.isActive ? 'Pasife al' : 'Aktif et'}: ${question.text}`}
+                        value={question.isActive}
+                        onValueChange={(value) => setQuestionActive(question.id, value)}
+                        trackColor={{ false: palette.track, true: palette.mintSoft }}
+                        thumbColor={question.isActive ? palette.success : palette.inkFaint}
+                      />
+                    </View>
+                  </GlassCard>
                 </Reveal>
               );
             })}
@@ -148,6 +149,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: space.md,
     padding: space.md,
+  },
+  rowPress: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
   },
   inactive: {
     opacity: 0.55,

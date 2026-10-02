@@ -85,11 +85,10 @@ export function Button({
       >
         {variant === 'primary' ? (
           <LinearGradient
-            pointerEvents="none"
             colors={[palette.primary, palette.primaryDeep]}
             start={{ x: 0, y: 0.2 }}
             end={{ x: 1, y: 0.8 }}
-            style={StyleSheet.absoluteFill}
+            style={[StyleSheet.absoluteFill, styles.noEvents]}
           />
         ) : null}
         {loading ? (
@@ -108,6 +107,9 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
+  noEvents: {
+    pointerEvents: 'none',
+  },
   fullWidth: {
     alignSelf: 'stretch',
   },

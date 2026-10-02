@@ -63,16 +63,14 @@ export function GlassCard({
           />
         ) : null}
         <View
-          pointerEvents="none"
-          style={[StyleSheet.absoluteFill, { backgroundColor: WHITE_TINT[level] }]}
+          style={[StyleSheet.absoluteFill, styles.noEvents, { backgroundColor: WHITE_TINT[level] }]}
         />
         {glint ? (
           <LinearGradient
-            pointerEvents="none"
             colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,0)']}
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
-            style={styles.glint}
+            style={[styles.glint, styles.noEvents]}
           />
         ) : null}
         <View style={padded ? styles.padded : undefined}>{children}</View>
@@ -82,6 +80,9 @@ export function GlassCard({
 }
 
 const styles = StyleSheet.create({
+  noEvents: {
+    pointerEvents: 'none',
+  },
   clip: {
     borderWidth: 1,
     overflow: 'hidden',

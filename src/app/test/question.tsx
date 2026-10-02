@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { Redirect, useRouter } from 'expo-router';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
 import { GlassCard } from '@/components/glass/GlassCard';
@@ -184,7 +184,11 @@ export default function QuestionScreen() {
         <ProgressBar progress={(index + (feedback ? 1 : 0)) / total} />
       </View>
 
-      <View style={styles.questionArea}>
+      <ScrollView
+        style={styles.middle}
+        contentContainerStyle={styles.middleContent}
+        showsVerticalScrollIndicator={false}
+      >
         <GlassCard glint style={styles.questionCard}>
           <View style={styles.visualWrap}>
             <Text style={styles.visual} maxFontSizeMultiplier={1.05}>
@@ -195,19 +199,19 @@ export default function QuestionScreen() {
             {question.text}
           </Text>
         </GlassCard>
-      </View>
 
-      <View style={styles.optionsArea}>
-        {question.options.map((option, optionIndex) => (
-          <OptionButton
-            key={`${question.id}-${optionIndex}`}
-            label={option}
-            letter={LETTERS[optionIndex]}
-            state={optionState(optionIndex)}
-            onPress={() => answer(optionIndex)}
-          />
-        ))}
-      </View>
+        <View style={styles.optionsArea}>
+          {question.options.map((option, optionIndex) => (
+            <OptionButton
+              key={`${question.id}-${optionIndex}`}
+              label={option}
+              letter={LETTERS[optionIndex]}
+              state={optionState(optionIndex)}
+              onPress={() => answer(optionIndex)}
+            />
+          ))}
+        </View>
+      </ScrollView>
 
       {feedback && selected !== null ? (
         <View style={styles.sheetWrap}>
@@ -307,9 +311,13 @@ const styles = StyleSheet.create({
   progressWrap: {
     marginTop: space.md,
   },
-  questionArea: {
+  middle: {
     flex: 1,
+  },
+  middleContent: {
+    flexGrow: 1,
     justifyContent: 'center',
+    gap: space.lg,
     paddingVertical: space.md,
   },
   questionCard: {},
@@ -325,7 +333,6 @@ const styles = StyleSheet.create({
   },
   optionsArea: {
     gap: space.sm,
-    paddingBottom: space.sm,
   },
   sheetWrap: {
     paddingBottom: space.md,

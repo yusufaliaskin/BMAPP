@@ -77,7 +77,7 @@ export function AuroraBackground() {
   const reduced = useReducedMotion();
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    <View style={[StyleSheet.absoluteFill, styles.root, styles.noEvents]}>
       <LinearGradient
         colors={['#F7FBFF', '#EEF4FF', '#F7F3FF']}
         style={StyleSheet.absoluteFill}
@@ -121,3 +121,12 @@ export function AuroraBackground() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    overflow: 'hidden',
+  },
+  noEvents: {
+    pointerEvents: 'none',
+  },
+});

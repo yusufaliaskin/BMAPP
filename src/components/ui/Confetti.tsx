@@ -51,9 +51,9 @@ function Particle({ index, progress }: ParticleProps) {
 
   return (
     <Animated.View
-      pointerEvents="none"
       style={[
         styles.particle,
+        styles.noEvents,
         { backgroundColor: color, borderRadius: index % 3 === 0 ? 999 : 2 },
         style,
       ]}
@@ -79,7 +79,7 @@ export function Confetti({ onDone }: ConfettiProps) {
   }, [onDone, progress]);
 
   return (
-    <View pointerEvents="none" style={styles.overlay}>
+    <View style={[styles.overlay, styles.noEvents]}>
       <View style={styles.origin}>
         {Array.from({ length: COUNT }).map((_, index) => (
           <Particle key={index} index={index} progress={progress} />
@@ -90,6 +90,9 @@ export function Confetti({ onDone }: ConfettiProps) {
 }
 
 const styles = StyleSheet.create({
+  noEvents: {
+    pointerEvents: 'none',
+  },
   overlay: {
     ...StyleSheet.absoluteFill,
     alignItems: 'center',
