@@ -38,11 +38,6 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    },
-    "splash": {
-      "backgroundColor": "#F4F8FF",
-      "resizeMode": "contain",
-      "image": "./assets/images/splash-icon.png"
     }
   }
 }
