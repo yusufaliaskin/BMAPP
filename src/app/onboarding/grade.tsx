@@ -1,6 +1,7 @@
 /**
- * Sınıf/şube seçimi — büyük kartlar (§6). Sınıf seçimi şubeleri getirir;
- * kayıt tek "BAŞLA 🚀" ile tamamlanır ve oturum açılır.
+ * Sınıf/şube seçimi — büyük kartlar (§6, kiosk akışı).
+ * Karakter adımı yoktur: sıradaki çocuk için akış kısa tutulur.
+ * Seçim sonrası test hazırlık ekranına geçilir; kayıt ancak test bitince oluşur.
  */
 
 import { useState } from 'react';
@@ -14,8 +15,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
-import { createStudent } from '@/data/actions';
-import { useCharacters, useClassesForGrade } from '@/data/hooks';
+import { useClassesForGrade } from '@/data/hooks';
 import type { Grade } from '@/domain/models';
 import { palette, radius, space, type } from '@/theme';
 
@@ -28,42 +28,22 @@ const GRADE_OPTIONS = [
 
 export default function GradeScreen() {
   const router = useRouter();
-  const { name, character } = useLocalSearchParams<{ name?: string; character?: string }>();
-  const characters = useCharacters();
-  const [grade, setGrade] = useState<Grade>(3);
+  const { name } = useLocalSearchParams<{ name?: string }>();
+  const [grade, setGrade] = useState<Grade | null>(null);
   const [section, setSection] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const classes = useClassesForGrade(grade);
+  const classes = useClassesForGrade(grade ?? 1);
 
-  const characterInfo = characters.find((c) => c.id === character);
+  if (!name) return <Redirect href="/onboarding/welcome" />;
 
-  if (!name || !characterInfo) return <Redirect href="/onboarding/welcome" />;
-
-  const finish = () => {
-    if (!section || saving) return;
-    setSaving(true);
-    setSaveError(null);
-    try {
-      createStudent({
-        fullName: name,
-        characterId: characterInfo.id,
-        nickname: characterInfo.name,
-        emoji: characterInfo.emoji,
-        grade,
-        classId: `${grade}${section}`,
-      });
-      if (Platform.OS !== 'web') {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
-          () => undefined,
-        );
-      }
-      router.replace('/');
-    } catch (error) {
-      console.warn('Öğrenci kaydedilemedi.', error);
-      setSaveError('Kaydedilemedi. Lütfen tekrar dene.');
-      setSaving(false);
+  const goNext = () => {
+    if (grade === null || !section) return;
+    if (Platform.OS !== 'web') {
+      void Haptics.selectionAsync().catch(() => undefined);
     }
+    router.push({
+      pathname: '/test/start',
+      params: { name, classId: `${grade}${section}` },
+    });
   };
 
   return (
@@ -76,60 +56,59 @@ export default function GradeScreen() {
           <SegmentedControl
             accessibilityLabel="Sınıf seçimi"
             options={GRADE_OPTIONS.map((option) => ({ ...option }))}
-            value={grade}
+            value={grade ?? 0}
             onChange={(value) => {
-              setGrade(value);
+              setGrade(value as Grade);
               setSection(null);
             }}
           />
         </Reveal>
-        <Reveal delay={130} style={styles.sectionArea}>
-          <Text style={[type.label, { color: palette.inkSoft }]}>Şubeni seç</Text>
-          <View style={styles.sections}>
-            {classes.map((item) => {
-              const isSelected = section === item.section;
-              return (
-                <PressableScale
-                  key={item.id}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${item.grade}/${item.section} şubesi`}
-                  accessibilityState={{ selected: isSelected }}
-                  haptic="selection"
-                  onPress={() => setSection(item.section)}
-                  style={styles.sectionWrap}
-                >
-                  <GlassCard
-                    padded={false}
-                    style={[styles.sectionCard, isSelected ? styles.sectionSelected : null]}
+        {grade !== null ? (
+          <Reveal delay={130} style={styles.sectionArea}>
+            <Text style={[type.label, { color: palette.inkSoft }]}>Şubeni seç</Text>
+            <View style={styles.sections}>
+              {classes.map((item) => {
+                const isSelected = section === item.section;
+                return (
+                  <PressableScale
+                    key={item.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${item.grade}/${item.section} şubesi`}
+                    accessibilityState={{ selected: isSelected }}
+                    haptic="selection"
+                    onPress={() => setSection(item.section)}
+                    style={styles.sectionWrap}
                   >
-                    <View style={styles.sectionInner}>
-                      <Text style={[type.display, { color: palette.ink }]}>{item.section}</Text>
-                      <Text style={[type.caption, { color: palette.inkFaint }]}>
-                        {item.grade}/{item.section}
-                      </Text>
-                    </View>
-                  </GlassCard>
-                </PressableScale>
-              );
-            })}
-          </View>
-          <Text style={[type.caption, styles.center, { color: palette.inkFaint }]}>
-            Adın sıralamada gizli kalır; karakterin görünür. 😊
-          </Text>
-        </Reveal>
+                    <GlassCard
+                      padded={false}
+                      style={[styles.sectionCard, isSelected ? styles.sectionSelected : null]}
+                    >
+                      <View style={styles.sectionInner}>
+                        <Text style={[type.display, { color: palette.ink }]}>{item.section}</Text>
+                        <Text style={[type.caption, { color: palette.inkFaint }]}>
+                          {item.grade}/{item.section}
+                        </Text>
+                      </View>
+                    </GlassCard>
+                  </PressableScale>
+                );
+              })}
+            </View>
+          </Reveal>
+        ) : (
+          <Reveal delay={130}>
+            <Text style={[type.caption, styles.center, { color: palette.inkFaint }]}>
+              Önce sınıfını seç 👆
+            </Text>
+          </Reveal>
+        )}
       </View>
-      <Reveal delay={190} style={styles.footer}>
-        {saveError ? (
-          <Text accessibilityLiveRegion="polite" style={[type.caption, styles.center, { color: palette.coral }]}>
-            {saveError}
-          </Text>
-        ) : null}
+      <Reveal delay={190}>
         <Button
-          label="BAŞLA 🚀"
-          onPress={finish}
-          disabled={!section}
-          loading={saving}
-          accessibilityHint="Kaydı tamamlar ve ana sayfayı açar"
+          label="DEVAM ET →"
+          onPress={goNext}
+          disabled={grade === null || !section}
+          accessibilityHint="Test hazırlık ekranına geçer"
         />
       </Reveal>
     </Screen>
@@ -168,9 +147,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: space.lg,
     gap: space.xs,
-  },
-  footer: {
-    gap: space.md,
-    paddingBottom: space.md,
   },
 });

@@ -1,7 +1,7 @@
 /**
  * Uygulama veri deposu — tek bellek içi kaynak (single source of truth).
  * useSyncExternalStore ile React'e bağlanır; her mutasyon yeni bir state nesnesi üretir,
- * yazma işlemi kısa bir debounce ile diske indirilir.
+ * yazma işlemi kısa bir debounce ile diske indirilir. Kiosk modeli: oturum durumu yoktur.
  */
 
 import type { DBData, DBState } from '../domain/models';
@@ -68,13 +68,10 @@ export async function initStore(): Promise<void> {
   state = {
     version: SCHEMA_VERSION,
     data: {
-      students: [],
       results: [],
-      studentBadges: [],
       certificates: [],
       ...seed,
     },
-    session: { studentId: null },
   };
   emit();
   await flushPersist();
@@ -83,13 +80,6 @@ export async function initStore(): Promise<void> {
 export function updateData(mutator: (data: DBData) => DBData): void {
   if (!state) return;
   state = { ...state, data: mutator(state.data) };
-  emit();
-  schedulePersist();
-}
-
-export function setSessionStudent(studentId: string | null): void {
-  if (!state) return;
-  state = { ...state, session: { studentId } };
   emit();
   schedulePersist();
 }

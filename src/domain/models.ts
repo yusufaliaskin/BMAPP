@@ -1,14 +1,16 @@
 /**
- * Alan modelleri — brief §32'deki minimum veri yapıları.
- * Puan/doğru/yanlış alanları UI tarafından asla yazılmaz;
- * yalnız src/domain/engine içindeki motor hesaplar (bkz. scoring.ts).
+ * Alan modelleri — KIOSK / tek kullanımlık katılımcı modeli (v2).
+ * Kalıcı öğrenci hesabı YOK: her test oturumu benzersiz bir katılımcı kodu üretir
+ * (ör. 9F3A-72K1) ve sonuç bu kodla saklanır. Puan/doğru/yanlış alanları UI tarafından
+ * asla yazılmaz; yalnız src/domain/engine içindeki motor hesaplar (§35).
  */
 
 export type Grade = 1 | 2 | 3 | 4;
 
 export type Difficulty = 'easy' | 'easy-medium' | 'medium' | 'medium-hard';
 
-export type RetakePolicy = 'first' | 'best' | 'max_attempts';
+/** Sertifika sınıfı — ilk üç derece (§19). */
+export type Medal = 'gold' | 'silver' | 'bronze';
 
 export interface Topic {
   id: string;
@@ -25,24 +27,6 @@ export interface SchoolClass {
   grade: Grade;
   section: string;
   isActive: boolean;
-}
-
-export interface AvatarCharacter {
-  id: string;
-  emoji: string;
-  name: string;
-}
-
-export interface Student {
-  id: string;
-  /** Gerçek ad — yalnız admin görür (§7, §35). */
-  fullName: string;
-  characterId: string;
-  nickname: string;
-  emoji: string;
-  grade: Grade;
-  classId: string;
-  createdAt: string;
 }
 
 export interface Question {
@@ -69,10 +53,12 @@ export interface TestAnswer {
 
 export interface TestResult {
   id: string;
-  studentId: string;
+  /** İnsan-okur benzersiz katılımcı kodu, ör. 9F3A-72K1. */
+  participantCode: string;
+  /** Çocuğun girdiği görünen ad / lakap. */
+  displayName: string;
   grade: Grade;
   classId: string;
-  attempt: number;
   startedAt: string;
   completedAt: string;
   durationMs: number;
@@ -83,36 +69,23 @@ export interface TestResult {
   maxScore: number;
 }
 
-export type BadgeRuleKind =
-  | 'first_test'
-  | 'tests_count'
-  | 'min_percent'
-  | 'perfect'
-  | 'correct_total';
-
-export interface BadgeDef {
-  id: string;
+/** Sonuç ekranında gösterilen, puanla kazanılan unvan kuralı (§18). */
+export interface TitleRule {
+  minPercent: number;
   name: string;
   emoji: string;
-  description: string;
-  rule: { kind: BadgeRuleKind; threshold?: number };
-}
-
-export interface StudentBadge {
-  studentId: string;
-  badgeId: string;
-  earnedAt: string;
-  resultId: string;
 }
 
 export interface Certificate {
   id: string;
   /** Benzersiz numara, ör. BEUN-2026-3-001 (§20). */
   number: string;
-  studentId: string;
+  participantCode: string;
+  displayName: string;
   grade: Grade;
   section: string;
   rank: 1 | 2 | 3;
+  medal: Medal;
   score: number;
   period: string;
   issuedAt: string;
@@ -125,49 +98,44 @@ export interface GradeSettings {
 }
 
 export interface AppConfig {
-  retakePolicy: RetakePolicy;
-  maxAttempts: number;
   certificatePrefix: string;
   period: string;
   projectTitle: string;
   universityName: string;
   signatoryLeft: string;
   signatoryRight: string;
+  /** Puana göre unvan kuralları (yüksek eşik önce gelir). */
+  titles: TitleRule[];
   adminPinHash: string;
   adminPinSalt: string;
 }
 
 export interface RankEntry {
-  studentId: string;
+  resultId: string;
+  participantCode: string;
+  displayName: string;
+  grade: Grade;
+  section: string;
   score: number;
   correct: number;
   wrong: number;
   completedAt: string;
-  resultId: string;
   rank: number;
 }
 
 export interface DBData {
-  students: Student[];
   classes: SchoolClass[];
   topics: Topic[];
   questions: Question[];
   results: TestResult[];
-  studentBadges: StudentBadge[];
   certificates: Certificate[];
   gradeSettings: GradeSettings[];
-  badges: BadgeDef[];
   config: AppConfig;
-}
-
-export interface SessionState {
-  studentId: string | null;
 }
 
 export interface DBState {
   version: number;
   data: DBData;
-  session: SessionState;
 }
 
 export const GRADES: readonly Grade[] = [1, 2, 3, 4] as const;
@@ -175,3 +143,26 @@ export const GRADES: readonly Grade[] = [1, 2, 3, 4] as const;
 export function gradeLabel(grade: Grade): string {
   return `${grade}. Sınıflar`;
 }
+
+/** "3A" → "A" */
+export function sectionOf(classId: string): string {
+  return classId.replace(/^\d/, '');
+}
+
+export function medalForRank(rank: number): Medal {
+  if (rank === 1) return 'gold';
+  if (rank === 2) return 'silver';
+  return 'bronze';
+}
+
+export const MEDAL_LABEL: Record<Medal, string> = {
+  gold: 'Altın',
+  silver: 'Gümüş',
+  bronze: 'Bronz',
+};
+
+export const MEDAL_EMOJI: Record<Medal, string> = {
+  gold: '🥇',
+  silver: '🥈',
+  bronze: '🥉',
+};

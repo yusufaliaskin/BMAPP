@@ -1,6 +1,7 @@
 /**
- * Admin — Sıralamalar (§24): sınıf seviyesi sekmeleri, ilk üç ve tam liste;
- * "SERTİFİKA OLUŞTUR" ile o seviyenin ilk 3'ü için benzersiz numaralı sertifika üretilir.
+ * Admin — Sıralamalar (§24, kiosk uyarlaması): sınıf seviyesi sekmeleri, ilk üç ve
+ * tam liste; "SERTİFİKA OLUŞTUR" ile o seviyenin ilk 3'ü için benzersiz numaralı
+ * ALTIN / GÜMÜŞ / BRONZ sertifika üretilir. Katılımcı kodu benzersizdir.
  */
 
 import { useState } from 'react';
@@ -8,17 +9,18 @@ import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { GlassCard } from '@/components/glass/GlassCard';
+import { AvatarBubble } from '@/components/ui/AvatarBubble';
 import { Button } from '@/components/ui/Button';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { EmptyState } from '@/components/ui/states';
 import { issueCertificatesForGrade } from '@/data/actions';
-import { useConfig, useCertificates, useResults, useStudents } from '@/data/hooks';
-import { medalForRank } from '@/domain/engine/certificates';
-import { rankForGrade } from '@/domain/engine/ranking';
+import { useCertificates, useRankingsFor } from '@/data/hooks';
+import { MEDAL_EMOJI, MEDAL_LABEL } from '@/domain/models';
 import type { Grade } from '@/domain/models';
-import { glassSurface, medal, palette, radius, space, type } from '@/theme';
+import { emojiForCode } from '@/lib/participant';
+import { glassSurface, palette, radius, space, type } from '@/theme';
 
 const GRADE_OPTIONS = [
   { value: 1, label: '1' },
@@ -29,15 +31,12 @@ const GRADE_OPTIONS = [
 
 export default function AdminRankingsScreen() {
   const router = useRouter();
-  const students = useStudents();
-  const results = useResults();
-  const config = useConfig();
   const certificates = useCertificates();
   const [grade, setGrade] = useState<Grade>(3);
   const [busy, setBusy] = useState(false);
   const [report, setReport] = useState<string | null>(null);
 
-  const ranked = rankForGrade(results, students, grade, config);
+  const ranked = useRankingsFor(grade, null);
 
   const issue = () => {
     if (busy) return;
@@ -46,7 +45,12 @@ export default function AdminRankingsScreen() {
     try {
       const outcome = issueCertificatesForGrade(grade);
       if (outcome.createdNumbers.length > 0) {
-        setReport(`✅ ${outcome.createdNumbers.length} yeni sertifika üretildi: ${outcome.createdNumbers.join(', ')}`);
+        const medals = outcome.createdMedals
+          .map((medal) => MEDAL_LABEL[medal])
+          .join(', ');
+        setReport(
+          `✅ ${outcome.createdNumbers.length} yeni sertifika üretildi (${medals}): ${outcome.createdNumbers.join(', ')}`,
+        );
       } else if (outcome.updatedCount > 0) {
         setReport(`♻️ ${outcome.updatedCount} sertifika güncellendi (sıra/puan değişti).`);
       } else {
@@ -80,14 +84,16 @@ export default function AdminRankingsScreen() {
             label="SERTİFİKA OLUŞTUR 🎖️"
             onPress={issue}
             loading={busy}
-            accessibilityHint={`${grade}. sınıfların ilk üçü için sertifika üretir`}
+            accessibilityHint={`${grade}. sınıfların ilk üçü için altın/gümüş/bronz sertifika üretir`}
           />
         </Reveal>
 
         {report ? (
           <Reveal delay={80}>
             <GlassCard padded={false}>
-              <Text style={[type.bodySemi, styles.reportText, { color: palette.ink }]}>{report}</Text>
+              <Text style={[type.bodySemi, styles.reportText, { color: palette.ink }]}>
+                {report}
+              </Text>
             </GlassCard>
           </Reveal>
         ) : null}
@@ -96,41 +102,40 @@ export default function AdminRankingsScreen() {
           <EmptyState
             emoji="🏆"
             title="Bu seviyede henüz sonuç yok"
-            message="Öğrenciler test çözdükçe sıralama burada oluşur."
+            message="Katılımcılar test çözdükçe sıralama burada oluşur."
           />
         ) : (
           <View style={styles.list}>
             {ranked.map((entry, index) => {
-              const owner = students.find((s) => s.id === entry.studentId);
-              if (!owner) return null;
               const certificate = certificates.find(
-                (c) => c.studentId === owner.id && c.grade === grade && c.period === config.period,
+                (c) =>
+                  c.participantCode === entry.participantCode &&
+                  c.grade === grade &&
+                  c.period === c.period,
               );
               const isTop3 = entry.rank <= 3;
               return (
-                <Reveal key={entry.studentId} delay={Math.min(100 + index * 30, 360)}>
-                  <View
-                    style={[
-                      styles.row,
-                      isTop3 ? styles.topRow : glassSurface('subtle'),
-                    ]}
-                  >
+                <Reveal key={entry.resultId} delay={Math.min(100 + index * 30, 360)}>
+                  <View style={[styles.row, isTop3 ? styles.topRow : glassSurface('subtle')]}>
                     <View style={[styles.rankBubble, isTop3 ? styles.rankBubbleTop : null]}>
-                      <Text style={[type.label, { color: isTop3 ? medal.gold : palette.inkSoft }]}>
-                        {medalForRank(entry.rank)}
+                      <Text style={styles.rankText} maxFontSizeMultiplier={1.1}>
+                        {isTop3 ? MEDAL_EMOJI[entry.rank === 1 ? 'gold' : entry.rank === 2 ? 'silver' : 'bronze'] : `#${entry.rank}`}
                       </Text>
                     </View>
+                    <AvatarBubble emoji={emojiForCode(entry.participantCode)} size={40} />
                     <View style={styles.rowText}>
                       <Text style={[type.bodyBold, { color: palette.ink }]} numberOfLines={1}>
-                        {owner.fullName}
+                        {entry.displayName}
                       </Text>
                       <Text style={[type.caption, { color: palette.inkFaint }]} numberOfLines={1}>
-                        {owner.nickname} · {owner.classId}
+                        {entry.participantCode} · {entry.grade}/{entry.section}
                         {certificate ? ` · 🎓 ${certificate.number}` : ''}
                       </Text>
                     </View>
                     <View style={styles.rowScore}>
-                      <Text style={[type.h3, { color: palette.rewardDeep }]}>⭐ {entry.score}</Text>
+                      <Text style={[type.h3, { color: palette.rewardDeep }]}>
+                        ⭐ {entry.score}
+                      </Text>
                       <Text style={[type.caption, { color: palette.inkFaint }]}>
                         ✅ {entry.correct} · ❌ {entry.wrong}
                       </Text>
@@ -167,18 +172,22 @@ const styles = StyleSheet.create({
   },
   topRow: {
     backgroundColor: palette.rewardSoft,
-    borderColor: medal.gold,
+    borderColor: palette.reward,
   },
   rankBubble: {
-    width: 42,
+    minWidth: 42,
     height: 42,
     borderRadius: radius.pill,
     backgroundColor: palette.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: space.xs,
   },
   rankBubbleTop: {
     backgroundColor: palette.white,
+  },
+  rankText: {
+    fontSize: 18,
   },
   rowText: {
     flex: 1,

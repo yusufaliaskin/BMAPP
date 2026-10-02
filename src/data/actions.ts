@@ -1,75 +1,29 @@
 /**
  * İşlemler (actions) — UI'ın veri yazmak için kullandığı tek kapı.
- * Puan/sıralama/rozet/sertifika hesapları burada, motor üzerinden yapılır;
- * ekranlar asla doğrudan koleksiyonlara yazmaz.
+ * Puan/sertifika hesapları burada, motor üzerinden yapılır; ekranlar asla doğrudan
+ * koleksiyonlara yazmaz (§35). Kiosk modeli: sonuçlar benzersiz katılımcı kodu taşır.
  */
 
 import type {
   AppConfig,
   Grade,
   GradeSettings,
+  Medal,
   Question,
-  Student,
-  StudentBadge,
   TestResult,
 } from '../domain/models';
 import type { AnswerInput } from '../domain/engine/scoring';
 import { gradeTest } from '../domain/engine/scoring';
-import { canAttempt } from '../domain/engine/quiz';
-import { evaluateNewBadges } from '../domain/engine/badges';
 import { issueTop3 } from '../domain/engine/certificates';
 import { rankForGrade } from '../domain/engine/ranking';
-import { flushPersist, getState, setSessionStudent, updateData } from './db';
+import { flushPersist, getState, updateData } from './db';
 import { makeId, makeSalt, hashPin } from '../lib/pin';
 
-export interface NewStudentInput {
-  fullName: string;
-  characterId: string;
-  nickname: string;
-  emoji: string;
-  grade: Grade;
-  classId: string;
-}
-
-export function createStudent(input: NewStudentInput): Student {
-  const student: Student = {
-    id: makeId(),
-    fullName: input.fullName.trim(),
-    characterId: input.characterId,
-    nickname: input.nickname,
-    emoji: input.emoji,
-    grade: input.grade,
-    classId: input.classId,
-    createdAt: new Date().toISOString(),
-  };
-  updateData((data) => ({ ...data, students: [...data.students, student] }));
-  setSessionStudent(student.id);
-  void flushPersist();
-  return student;
-}
-
-export function signIn(studentId: string): void {
-  setSessionStudent(studentId);
-}
-
-export function signOut(): void {
-  setSessionStudent(null);
-}
-
-export function updateStudentAvatar(studentId: string, characterId: string, nickname: string, emoji: string): void {
-  updateData((data) => ({
-    ...data,
-    students: data.students.map((s) =>
-      s.id === studentId ? { ...s, characterId, nickname, emoji } : s,
-    ),
-  }));
-}
-
 export interface SaveResultInput {
-  studentId: string;
+  participantCode: string;
+  displayName: string;
   grade: Grade;
   classId: string;
-  attempt: number;
   startedAt: string;
   questions: Question[];
   answers: AnswerInput[];
@@ -77,15 +31,17 @@ export interface SaveResultInput {
 
 export interface SaveResultOutcome {
   result: TestResult;
-  newBadges: StudentBadge[];
 }
 
 /** Test sonucunu motorla doğrular, hesaplar ve kaydeder. Başarısızsa hata fırlatır. */
 export function saveTestResult(input: SaveResultInput): SaveResultOutcome {
   const { data } = getState();
-  const availability = canAttempt(data.results, input.studentId, input.grade, data.config);
-  if (!availability.allowed) {
-    throw new Error(availability.reason ?? 'Bu test şu anda tamamlanamaz.');
+  const code = input.participantCode.trim().toUpperCase();
+  if (code.length === 0) {
+    throw new Error('Katılımcı kodu eksik.');
+  }
+  if (data.results.some((r) => r.participantCode === code)) {
+    throw new Error('Bu katılımcı kodu zaten kayıtlı.');
   }
 
   const graded = gradeTest(input.answers, input.questions);
@@ -93,10 +49,10 @@ export function saveTestResult(input: SaveResultInput): SaveResultOutcome {
   const completedAt = completedDate.toISOString();
   const result: TestResult = {
     id: makeId(),
-    studentId: input.studentId,
+    participantCode: code,
+    displayName: input.displayName.trim(),
     grade: input.grade,
     classId: input.classId,
-    attempt: input.attempt,
     startedAt: input.startedAt,
     completedAt,
     durationMs: Math.max(0, completedDate.getTime() - new Date(input.startedAt).getTime()),
@@ -107,38 +63,24 @@ export function saveTestResult(input: SaveResultInput): SaveResultOutcome {
     maxScore: graded.maxScore,
   };
 
-  const nextResults = [...data.results, result];
-  const newBadges = evaluateNewBadges(
-    nextResults,
-    data.badges,
-    data.studentBadges,
-    input.studentId,
-    result.id,
-    completedAt,
-  );
-
-  updateData((current) => ({
-    ...current,
-    results: [...current.results, result],
-    studentBadges: [...current.studentBadges, ...newBadges],
-  }));
+  updateData((current) => ({ ...current, results: [...current.results, result] }));
   void flushPersist();
-  return { result, newBadges };
+  return { result };
 }
 
 export interface IssueOutcomeSummary {
   createdNumbers: string[];
+  createdMedals: Medal[];
   updatedCount: number;
 }
 
 /** Sınıf seviyesinin ilk 3'ü için sertifika üretir/günceller (§19, §24). */
 export function issueCertificatesForGrade(grade: Grade): IssueOutcomeSummary {
   const { data } = getState();
-  const ranked = rankForGrade(data.results, data.students, grade, data.config);
+  const ranked = rankForGrade(data.results, grade);
   const outcome = issueTop3(
     ranked,
     grade,
-    data.students,
     data.certificates,
     data.config,
     makeId,
@@ -146,7 +88,11 @@ export function issueCertificatesForGrade(grade: Grade): IssueOutcomeSummary {
   );
   updateData((current) => ({ ...current, certificates: outcome.certificates }));
   void flushPersist();
-  return { createdNumbers: outcome.created.map((c) => c.number), updatedCount: outcome.updated.length };
+  return {
+    createdNumbers: outcome.created.map((c) => c.number),
+    createdMedals: outcome.created.map((c) => c.medal),
+    updatedCount: outcome.updated.length,
+  };
 }
 
 export function updateConfig(partial: Partial<AppConfig>): void {
@@ -160,7 +106,10 @@ export async function changeAdminPin(newPin: string): Promise<void> {
   await flushPersist();
 }
 
-export function updateGradeSetting(grade: Grade, partial: Partial<Omit<GradeSettings, 'grade'>>): void {
+export function updateGradeSetting(
+  grade: Grade,
+  partial: Partial<Omit<GradeSettings, 'grade'>>,
+): void {
   updateData((data) => ({
     ...data,
     gradeSettings: data.gradeSettings.map((g) => (g.grade === grade ? { ...g, ...partial } : g)),
@@ -186,15 +135,8 @@ export function setQuestionActive(questionId: string, isActive: boolean): void {
   }));
 }
 
-/** Öğrenci kayıtları ve sonuçları siler; soru bankası ve ayarlar korunur. */
-export function clearStudentData(): void {
-  updateData((data) => ({
-    ...data,
-    students: [],
-    results: [],
-    studentBadges: [],
-    certificates: [],
-  }));
-  setSessionStudent(null);
+/** Tüm katılımcı sonuçlarını ve sertifikaları siler; soru bankası ve ayarlar korunur. */
+export function clearParticipantData(): void {
+  updateData((data) => ({ ...data, results: [], certificates: [] }));
   void flushPersist();
 }

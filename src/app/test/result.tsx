@@ -1,11 +1,13 @@
 /**
- * Test sonucu (§14) — kaydedilmiş gerçek sonuçtan okunur; puan burada yeniden
- * hesaplanmaz, motordan gelen kayıt gösterilir. Sıra ve yeni rozetler de canlı veriden gelir.
+ * Test sonucu (§14, kiosk akışı) — kaydedilmiş gerçek sonuçtan okunur; puan burada
+ * yeniden hesaplanmaz. Kayıt onayı + derece durumu + ilk 3 önizlemesi gösterilir;
+ * tek ana aksiyon SIFIRLA'dır: geçici durum temizlenir, veritabanına DOKUNULMAZ,
+ * sıradaki çocuk için karşılama ekranı açılır.
  */
 
-import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
 import { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { GlassCard } from '@/components/glass/GlassCard';
 import { Button } from '@/components/ui/Button';
@@ -14,52 +16,64 @@ import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { ScoreCounter } from '@/components/ui/ScoreCounter';
 import { EmptyState } from '@/components/ui/states';
-import {
-  useBadges,
-  useCurrentStudent,
-  useRankingsFor,
-  useStudentBadges,
-  useResultById,
-} from '@/data/hooks';
+import { clearTestSession } from '@/features/test-session';
+import { useConfig, useRankingsFor, useResultById } from '@/data/hooks';
+import { titleForResult } from '@/domain/engine/titles';
 import { rankOf } from '@/domain/engine/ranking';
 import { formatDuration } from '@/lib/format';
+import { emojiForCode } from '@/lib/participant';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
-import { palette, space, type } from '@/theme';
+import { glassSurface, palette, radius, space, type } from '@/theme';
+
+function medalEmoji(rank: number): string {
+  if (rank === 1) return '🥇';
+  if (rank === 2) return '🥈';
+  if (rank === 3) return '🥉';
+  return '🏅';
+}
+
+function medalLabel(rank: number): string {
+  if (rank === 1) return 'Altın';
+  if (rank === 2) return 'Gümüş';
+  return 'Bronz';
+}
 
 export default function ResultScreen() {
   const router = useRouter();
   const reduced = useReducedMotion();
   const { resultId } = useLocalSearchParams<{ resultId?: string }>();
-  const student = useCurrentStudent();
   const result = useResultById(resultId);
-  const ranked = useRankingsFor(student?.grade ?? 1, null);
-  const allBadges = useBadges();
-  const myBadges = useStudentBadges(student?.id);
+  const config = useConfig();
   const [showConfetti, setShowConfetti] = useState(!reduced);
 
-  if (!student) return <Redirect href="/onboarding/welcome" />;
+  const ranked = useRankingsFor(result?.grade ?? 1, null);
+
+  const reset = () => {
+    clearTestSession();
+    router.replace('/onboarding/welcome');
+  };
 
   if (!result) {
     return (
-      <Screen title="Sonuç" onBack={() => router.back()}>
+      <Screen title="Sonuç">
         <View style={styles.centerWrap}>
           <EmptyState
             emoji="🔎"
             title="Sonuç bulunamadı"
-            message="Bu sonuç kayıtlarda yok. Ana sayfadan yeni bir teste başlayabilirsin."
-            actionLabel="ANA SAYFA"
-            onAction={() => router.replace('/')}
+            message="Bu sonuç kayıtlarda yok. Sıradaki katılımcı için sıfırlayabilirsin."
+            actionLabel="SIFIRLA 🔄"
+            onAction={reset}
           />
         </View>
       </Screen>
     );
   }
 
-  const myRank = rankOf(ranked, student.id);
-  const newBadges = myBadges
-    .filter((badge) => badge.resultId === result.id)
-    .map((badge) => ({ awarded: badge, def: allBadges.find((b) => b.id === badge.badgeId) }))
-    .filter((item) => item.def);
+  const myRank = rankOf(ranked, result.id);
+  const top3 = ranked.slice(0, 3);
+  const title = titleForResult(result.score, result.maxScore, config.titles);
+  const avatar = emojiForCode(result.participantCode);
+  const section = result.classId.replace(/^\d/, '');
 
   return (
     <Screen scroll contentStyle={styles.root}>
@@ -67,9 +81,12 @@ export default function ResultScreen() {
       <View style={styles.stack}>
         <Reveal style={styles.hero}>
           <Text style={styles.heroEmoji} maxFontSizeMultiplier={1.1}>
-            🎉
+            🏆
           </Text>
           <Text style={[type.h1, styles.center, { color: palette.ink }]}>TEST BİTTİ!</Text>
+          <Text style={[type.bodySemi, styles.center, { color: palette.inkSoft }]}>
+            {avatar} {result.displayName} · {result.grade}/{section}
+          </Text>
         </Reveal>
 
         <Reveal delay={70}>
@@ -79,67 +96,89 @@ export default function ResultScreen() {
                 ⭐
               </Text>
               <ScoreCounter value={result.score} duration={900} style={{ color: palette.ink }} />
-              <Text style={[type.bodySemi, { color: palette.inkSoft }]}>
-                / {result.maxScore}
-              </Text>
+              <Text style={[type.bodySemi, { color: palette.inkSoft }]}>/ {result.maxScore}</Text>
             </View>
             <Text style={[type.bodySemi, styles.center, { color: palette.inkSoft }]}>
-              {result.correct} doğru · {result.wrong} yanlış · {formatDuration(result.durationMs)}
+              ✅ {result.correct} doğru · ❌ {result.wrong} yanlış · ⏱️{' '}
+              {formatDuration(result.durationMs)}
             </Text>
           </GlassCard>
         </Reveal>
 
-        {myRank ? (
-          <Reveal delay={140}>
-            <GlassCard style={styles.rankCard}>
-              <Text style={[type.bodySemi, { color: palette.inkSoft }]}>
-                🏆 Sıralamadaki yerin
-              </Text>
-              <Text style={[type.display, { color: palette.rewardDeep }]}>
-                {myRank.rank}.
-              </Text>
-              <Text style={[type.caption, { color: palette.inkFaint }]}>
-                {student.grade}. sınıflar arasında
+        <Reveal delay={120}>
+          <View style={[styles.savedRow, glassSurface('strong')]}>
+            <Text style={[type.caption, styles.center, { color: palette.success }]}>
+              ✅ Sonucun kaydedildi · Katılımcı No: {result.participantCode}
+            </Text>
+          </View>
+        </Reveal>
+
+        {title ? (
+          <Reveal delay={160}>
+            <GlassCard style={styles.titleCard}>
+              <Text style={[type.h3, { color: palette.ink }]}>🎖️ Unvanın</Text>
+              <Text style={[type.h2, { color: palette.rewardDeep }]}>
+                {title.emoji} {title.name}
               </Text>
             </GlassCard>
           </Reveal>
         ) : null}
 
-        {newBadges.length > 0 ? (
-          <Reveal delay={200}>
-            <GlassCard style={styles.badgeCard}>
-              <Text style={[type.h3, { color: palette.ink }]}>🎖️ Yeni unvan kazandın!</Text>
-              {newBadges.map((item) => (
-                <View key={item.def!.id} style={styles.badgeRow}>
-                  <Text style={styles.badgeEmoji} maxFontSizeMultiplier={1.1}>
-                    {item.def!.emoji}
-                  </Text>
-                  <Text style={[type.bodyBold, { color: palette.ink }]}>{item.def!.name}</Text>
-                </View>
-              ))}
-            </GlassCard>
-          </Reveal>
-        ) : null}
-
-        {myRank && myRank.rank <= 3 ? (
-          <Reveal delay={240}>
-            <GlassCard style={styles.certCard}>
-              <Text style={[type.bodySemi, styles.center, { color: palette.ink }]}>
-                🥳 İlk üçtesin! Sertifikan seni bekliyor.
+        <Reveal delay={200}>
+          <GlassCard style={styles.rankCard}>
+            <Text style={[type.bodySemi, { color: palette.inkSoft }]}>📜 Derece durumu</Text>
+            {myRank ? (
+              <>
+                <Text style={[type.display, { color: palette.rewardDeep }]}>
+                  {medalEmoji(myRank.rank)} {myRank.rank}.
+                </Text>
+                <Text style={[type.caption, { color: palette.inkFaint }]}>
+                  {result.grade}. sınıflar sıralaması · {ranked.length} katılımcı
+                </Text>
+              </>
+            ) : null}
+            <View style={styles.top3}>
+              {top3.map((entry) => {
+                const isMe = myRank ? entry.resultId === myRank.resultId : false;
+                return (
+                  <View
+                    key={entry.resultId}
+                    style={[styles.topRow, isMe ? styles.topRowMe : null]}
+                  >
+                    <Text style={styles.topMedal}>{medalEmoji(entry.rank)}</Text>
+                    <Text style={styles.topAvatar}>{emojiForCode(entry.participantCode)}</Text>
+                    <Text
+                      style={[type.bodySemi, styles.topName, { color: palette.ink }]}
+                      numberOfLines={1}
+                    >
+                      {entry.displayName}
+                      {isMe ? ' (sen)' : ''}
+                    </Text>
+                    <Text style={[type.label, { color: palette.rewardDeep }]}>
+                      ⭐ {entry.score}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+            {myRank && myRank.rank <= 3 ? (
+              <Text style={[type.caption, styles.center, { color: palette.success }]}>
+                {`🎓 İlk 3'tesin! ${medalLabel(myRank.rank)} sertifikan hazırlanacak.`}
               </Text>
-              <Button
-                label="SERTİFİKAMI GÖR 🎓"
-                variant="glass"
-                onPress={() => router.push('/certificate')}
-              />
-            </GlassCard>
-          </Reveal>
-        ) : null}
+            ) : null}
+          </GlassCard>
+        </Reveal>
       </View>
 
-      <Reveal delay={280} style={styles.footer}>
-        <Button label="SIRALAMAYA BAK 🏆" onPress={() => router.replace('/leaderboard')} />
-        <Button label="ANA SAYFA" variant="glass" onPress={() => router.replace('/')} />
+      <Reveal delay={260} style={styles.footer}>
+        <Button
+          label="SIFIRLA 🔄 YENİ KATILIMCI"
+          onPress={reset}
+          accessibilityHint="Geçici durumu temizler ve karşılama ekranını açar; kayıtlı sonuçlar silinmez"
+        />
+        <Text style={[type.caption, styles.center, { color: palette.inkFaint }]}>
+          Sonuç veritabanında güvende — sıradaki arkadaşın başlayabilir. 🙌
+        </Text>
       </Reveal>
     </Screen>
   );
@@ -174,27 +213,50 @@ const styles = StyleSheet.create({
   scoreStar: {
     fontSize: 30,
   },
-  rankCard: {
-    alignItems: 'center',
-    gap: space.xs,
-  },
-  badgeCard: {
-    gap: space.sm,
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.sm,
-  },
-  badgeEmoji: {
-    fontSize: 24,
-  },
-  certCard: {
-    gap: space.md,
+  savedRow: {
+    borderRadius: radius.pill,
+    paddingVertical: space.sm,
+    paddingHorizontal: space.lg,
   },
   footer: {
     gap: space.sm,
     marginTop: space.sm,
+  },
+  titleCard: {
+    alignItems: 'center',
+    gap: space.xs,
+  },
+  rankCard: {
+    alignItems: 'center',
+    gap: space.sm,
+  },
+  top3: {
+    alignSelf: 'stretch',
+    gap: space.sm,
+    marginTop: space.sm,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    borderRadius: radius.lg,
+    paddingVertical: space.sm,
+    paddingHorizontal: space.md,
+    backgroundColor: palette.primarySoft,
+  },
+  topRowMe: {
+    borderWidth: 1.5,
+    borderColor: palette.primary,
+    backgroundColor: palette.white,
+  },
+  topMedal: {
+    fontSize: 18,
+  },
+  topAvatar: {
+    fontSize: 18,
+  },
+  topName: {
+    flex: 1,
   },
   centerWrap: {
     flex: 1,

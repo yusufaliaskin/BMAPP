@@ -1,6 +1,6 @@
 /**
- * Admin dashboard (§21) — toplam katılımcı, test, puan, ortalama ve
- * sınıf seviyesi kırılımı; tüm alt yönetim ekranlarına giriş.
+ * Admin dashboard (§21, kiosk uyarlaması) — toplam katılımcı, bugünkü katılım,
+ * ortalama/en yüksek puan ve sınıf seviyesi kırılımı; alt yönetim ekranlarına giriş.
  */
 
 import { useRouter } from 'expo-router';
@@ -13,36 +13,36 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { StatCard } from '@/components/ui/StatCard';
-import { useConfig, useResults, useStudents, useGradeSettings } from '@/data/hooks';
-import { representativeResult } from '@/domain/engine/ranking';
+import { useGradeSettings, useResults, useTodayCount } from '@/data/hooks';
 import { GRADES } from '@/domain/models';
 import { glassSurface, palette, radius, space, type } from '@/theme';
 
 export default function AdminDashboardScreen() {
   const router = useRouter();
-  const students = useStudents();
   const results = useResults();
-  const config = useConfig();
+  const todayCount = useTodayCount();
   const gradeSettings = useGradeSettings();
 
-  const bests = students
-    .map((student) => representativeResult(results, student.id, student.grade, config.retakePolicy))
-    .filter((result) => result !== undefined);
-  const participants = bests.length;
-  const totalScore = bests.reduce((sum, result) => sum + result.score, 0);
+  const participants = results.length;
+  const totalScore = results.reduce((sum, result) => sum + result.score, 0);
   const averageScore = participants > 0 ? Math.round(totalScore / participants) : 0;
+  const topScore = results.reduce((max, result) => Math.max(max, result.score), 0);
+  const maxGradeCount = Math.max(
+    1,
+    ...GRADES.map((grade) => results.filter((result) => result.grade === grade).length),
+  );
 
   return (
     <Screen title="Yönetim Paneli" onBack={() => router.back()} scroll>
       <View style={styles.container}>
         <Reveal style={styles.statsGrid}>
           <View style={styles.statsRow}>
-            <StatCard emoji="👥" value={participants} label="Katılımcı öğrenci" accent="sky" />
-            <StatCard emoji="📝" value={results.length} label="Toplam test" accent="mint" />
+            <StatCard emoji="👥" value={participants} label="Toplam katılımcı" accent="sky" />
+            <StatCard emoji="📅" value={todayCount} label="Bugünkü katılım" accent="mint" />
           </View>
           <View style={styles.statsRow}>
-            <StatCard emoji="⭐" value={totalScore} label="Toplam puan" accent="amber" />
             <StatCard emoji="📊" value={averageScore} label="Ortalama puan" accent="lavender" />
+            <StatCard emoji="⭐" value={topScore} label="En yüksek puan" accent="amber" />
           </View>
         </Reveal>
 
@@ -50,10 +50,15 @@ export default function AdminDashboardScreen() {
           <GlassCard style={styles.gradeCard}>
             <Text style={[type.h3, { color: palette.ink }]}>🏫 Sınıf Seviyesi Katılımı</Text>
             {GRADES.map((grade) => {
-              const gradeStudents = students.filter((s) => s.grade === grade);
-              const gradeParticipants = bests.filter((r) => r.grade === grade).length;
-              const ratio = gradeStudents.length > 0 ? gradeParticipants / gradeStudents.length : 0;
+              const gradeResults = results.filter((result) => result.grade === grade);
               const settings = gradeSettings.find((g) => g.grade === grade);
+              const gradeAvg =
+                gradeResults.length > 0
+                  ? Math.round(
+                      gradeResults.reduce((sum, result) => sum + result.score, 0) /
+                        gradeResults.length,
+                    )
+                  : 0;
               return (
                 <View key={grade} style={styles.gradeRow}>
                   <View style={styles.gradeLabelRow}>
@@ -61,10 +66,10 @@ export default function AdminDashboardScreen() {
                       {grade}. Sınıflar
                     </Text>
                     <Text style={[type.caption, { color: palette.inkSoft }]}>
-                      {gradeParticipants}/{gradeStudents.length} katıldı · {settings?.questionCount} soru
+                      {gradeResults.length} katılımcı · ort. {gradeAvg} · {settings?.questionCount} soru
                     </Text>
                   </View>
-                  <ProgressBar progress={ratio} height={10} />
+                  <ProgressBar progress={gradeResults.length / maxGradeCount} height={10} />
                 </View>
               );
             })}
@@ -72,13 +77,48 @@ export default function AdminDashboardScreen() {
         </Reveal>
 
         <Reveal delay={140} style={styles.links}>
-          <AdminLink emoji="🧑‍🎓" label="Öğrenciler" detail="Liste, filtre ve detay" onPress={() => router.push('/admin/students')} />
-          <AdminLink emoji="🏫" label="Sınıflar" detail="Şube istatistikleri" onPress={() => router.push('/admin/classes')} />
-          <AdminLink emoji="🏆" label="Sıralamalar" detail="İlk 3 ve sertifika üretimi" onPress={() => router.push('/admin/rankings')} />
-          <AdminLink emoji="📈" label="Test Analizi" detail="Ortalamalar, zor sorular" onPress={() => router.push('/admin/analytics')} />
-          <AdminLink emoji="📚" label="Sorular" detail="Soru bankası yönetimi" onPress={() => router.push('/admin/questions')} />
-          <AdminLink emoji="🎓" label="Sertifikalar" detail="Üretilen sertifikalar" onPress={() => router.push('/admin/certificates')} />
-          <AdminLink emoji="⚙️" label="Ayarlar" detail="Soru sayısı, kurallar, PIN" onPress={() => router.push('/admin/settings')} />
+          <AdminLink
+            emoji="🧑‍🎓"
+            label="Katılımcılar"
+            detail="Liste, filtre, arama ve cevap detayı"
+            onPress={() => router.push('/admin/participants')}
+          />
+          <AdminLink
+            emoji="🏫"
+            label="Sınıflar"
+            detail="Şube istatistikleri"
+            onPress={() => router.push('/admin/classes')}
+          />
+          <AdminLink
+            emoji="🏆"
+            label="Sıralamalar"
+            detail="İlk 3 ve sertifika üretimi"
+            onPress={() => router.push('/admin/rankings')}
+          />
+          <AdminLink
+            emoji="📈"
+            label="Test Analizi"
+            detail="Ortalamalar, zor sorular"
+            onPress={() => router.push('/admin/analytics')}
+          />
+          <AdminLink
+            emoji="📚"
+            label="Sorular"
+            detail="Soru bankası yönetimi"
+            onPress={() => router.push('/admin/questions')}
+          />
+          <AdminLink
+            emoji="🎓"
+            label="Sertifikalar"
+            detail="Altın / gümüş / bronz sertifikalar"
+            onPress={() => router.push('/admin/certificates')}
+          />
+          <AdminLink
+            emoji="⚙️"
+            label="Ayarlar"
+            detail="Soru sayısı, sertifika başlıkları, PIN"
+            onPress={() => router.push('/admin/settings')}
+          />
         </Reveal>
       </View>
     </Screen>

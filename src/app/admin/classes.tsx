@@ -1,6 +1,6 @@
 /**
- * Admin — Sınıflar (§23): her seviyenin şubeleri; öğrenci sayısı, katılım,
- * ortalama ve en yüksek puan. Şubeye tıklanınca filtrelenmiş öğrenci listesi açılır.
+ * Admin — Sınıflar (§23, kiosk uyarlaması): her seviyenin şubeleri; katılımcı sayısı,
+ * ortalama ve en yüksek puan. Şubeye tıklanınca filtrelenmiş katılımcı listesi açılır.
  */
 
 import { useRouter } from 'expo-router';
@@ -11,17 +11,14 @@ import { GlassCard } from '@/components/glass/GlassCard';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
-import { useClasses, useConfig, useResults, useStudents } from '@/data/hooks';
-import { representativeResult } from '@/domain/engine/ranking';
+import { useClasses, useResults } from '@/data/hooks';
 import { GRADES } from '@/domain/models';
 import { glassSurface, palette, radius, space, type } from '@/theme';
 
 export default function AdminClassesScreen() {
   const router = useRouter();
   const classes = useClasses();
-  const students = useStudents();
   const results = useResults();
-  const config = useConfig();
 
   return (
     <Screen title="Sınıflar" onBack={() => router.back()} scroll>
@@ -33,22 +30,27 @@ export default function AdminClassesScreen() {
               <GlassCard style={styles.gradeCard}>
                 <Text style={[type.h3, { color: palette.ink }]}>🏫 {grade}. Sınıflar</Text>
                 {gradeClasses.map((item) => {
-                  const members = students.filter((s) => s.classId === item.id);
-                  const bests = members
-                    .map((s) => representativeResult(results, s.id, s.grade, config.retakePolicy))
-                    .filter((r) => r !== undefined);
+                  const sectionResults = results.filter((result) => result.classId === item.id);
                   const average =
-                    bests.length > 0
-                      ? Math.round(bests.reduce((sum, r) => sum + r.score, 0) / bests.length)
+                    sectionResults.length > 0
+                      ? Math.round(
+                          sectionResults.reduce((sum, result) => sum + result.score, 0) /
+                            sectionResults.length,
+                        )
                       : 0;
-                  const top = bests.reduce((max, r) => Math.max(max, r.score), 0);
+                  const top = sectionResults.reduce(
+                    (max, result) => Math.max(max, result.score),
+                    0,
+                  );
                   return (
                     <PressableScale
                       key={item.id}
                       accessibilityRole="button"
                       accessibilityLabel={`${grade}/${item.section} şubesi`}
                       haptic="light"
-                      onPress={() => router.push(`/admin/students?grade=${grade}&section=${item.section}`)}
+                      onPress={() =>
+                        router.push(`/admin/participants?grade=${grade}&section=${item.section}`)
+                      }
                     >
                       <View style={[styles.sectionRow, glassSurface('subtle')]}>
                         <View style={styles.sectionBadge}>
@@ -58,7 +60,7 @@ export default function AdminClassesScreen() {
                         </View>
                         <View style={styles.sectionStats}>
                           <Text style={[type.caption, { color: palette.inkSoft }]}>
-                            👥 {bests.length}/{members.length} katıldı
+                            👥 {sectionResults.length} katılımcı
                           </Text>
                           <Text style={[type.caption, { color: palette.inkFaint }]}>
                             ⭐ ort. {average} · en yüksek {top}

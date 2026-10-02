@@ -1,18 +1,17 @@
 /**
  * Başlangıç içeriği (seed) — gerçek ürün içeriği, sahte veri değil.
- * Konular, sorular, şubeler, karakterler, rozet kuralları ve varsayılan ayarlar.
+ * Konular, sorular, şubeler, unvan kuralları ve varsayılan ayarlar.
  * Sorular ilk açılışta veri deposuna yazılır; sonrasında admin tarafından yönetilir (§26).
  * Ton: farkındalık + güvenli davranış; korkutucu/tıbbi dil yok (§5). Metinler kısa (§2).
  */
 
 import type {
   AppConfig,
-  AvatarCharacter,
-  BadgeDef,
   DBData,
   GradeSettings,
   Question,
   SchoolClass,
+  TitleRule,
   Topic,
 } from '../models';
 
@@ -64,17 +63,6 @@ export const seedTopics: Topic[] = [
   },
 ];
 
-export const seedCharacters: AvatarCharacter[] = [
-  { id: 'aslan', emoji: '🦁', name: 'Bilgi Aslanı' },
-  { id: 'roket', emoji: '🚀', name: 'Zeka Roketi' },
-  { id: 'panda', emoji: '🐼', name: 'Sağlık Pandası' },
-  { id: 'baykus', emoji: '🦉', name: 'Bilge Baykuş' },
-  { id: 'yunus', emoji: '🐬', name: 'Denge Yunusu' },
-  { id: 'tilki', emoji: '🦊', name: 'Akıllı Tilki' },
-  { id: 'kurbaga', emoji: '🐸', name: 'Neşeli Kurbağa' },
-  { id: 'unicorn', emoji: '🦄', name: 'Parıltı Unicorn' },
-];
-
 const SECTIONS = ['A', 'B', 'C'] as const;
 
 export const seedClasses: SchoolClass[] = ([1, 2, 3, 4] as const).flatMap((grade) =>
@@ -86,49 +74,14 @@ export const seedClasses: SchoolClass[] = ([1, 2, 3, 4] as const).flatMap((grade
   })),
 );
 
-export const seedBadges: BadgeDef[] = [
-  {
-    id: 'ilk-adim',
-    name: 'İlk Adım',
-    emoji: '🌱',
-    description: 'İlk testini tamamladın.',
-    rule: { kind: 'first_test' },
-  },
-  {
-    id: 'farkindalik-kahramani',
-    name: 'Farkındalık Kahramanı',
-    emoji: '🏆',
-    description: 'Bir testte 90 ve üzeri puan aldın.',
-    rule: { kind: 'min_percent', threshold: 90 },
-  },
-  {
-    id: 'teknoloji-bilgesi',
-    name: 'Teknoloji Bilgesi',
-    emoji: '🧠',
-    description: 'Bir testte tam puan aldın.',
-    rule: { kind: 'perfect' },
-  },
-  {
-    id: 'dijital-denge-ustasi',
-    name: 'Dijital Denge Ustası',
-    emoji: '📱',
-    description: 'Toplam 3 test tamamladın.',
-    rule: { kind: 'tests_count', threshold: 3 },
-  },
-  {
-    id: 'saglik-koruyucusu',
-    name: 'Sağlık Koruyucusu',
-    emoji: '🛡️',
-    description: 'Toplam 20 doğru cevap verdin.',
-    rule: { kind: 'correct_total', threshold: 20 },
-  },
-  {
-    id: 'saglikli-yasam-elcisi',
-    name: 'Sağlıklı Yaşam Elçisi',
-    emoji: '🌟',
-    description: 'Toplam 5 test tamamladın.',
-    rule: { kind: 'tests_count', threshold: 5 },
-  },
+/**
+ * Sonuç ekranı unvan kuralları — kiosk modelinde birikimli rozet yoktur;
+ * unvan yalnızca o testin puanına göre anlık gösterilir (§18 uyarlaması).
+ */
+export const seedTitles: TitleRule[] = [
+  { minPercent: 100, name: 'Sınıfın Bilgesi', emoji: '🧠' },
+  { minPercent: 90, name: 'Farkındalık Kahramanı', emoji: '🏆' },
+  { minPercent: 70, name: 'Bilinçli Kahraman', emoji: '🌟' },
 ];
 
 export const seedGradeSettings: GradeSettings[] = [
@@ -139,14 +92,13 @@ export const seedGradeSettings: GradeSettings[] = [
 ];
 
 export const defaultConfig = (pinHash: string, pinSalt: string): AppConfig => ({
-  retakePolicy: 'best',
-  maxAttempts: 3,
   certificatePrefix: 'BEUN',
   period: '2026',
   projectTitle: 'Bağımlılıkla Mücadele Farkındalık Projesi',
   universityName: 'Zonguldak Bülent Ecevit Üniversitesi',
   signatoryLeft: 'Proje Ekibi',
   signatoryRight: 'Danışman Öğretmen',
+  titles: seedTitles,
   adminPinHash: pinHash,
   adminPinSalt: pinSalt,
 });
@@ -651,13 +603,15 @@ export const seedQuestions: Question[] = [
   },
 ];
 
-export function buildSeedData(pinHash: string, pinSalt: string): Omit<DBData, 'students' | 'results' | 'studentBadges' | 'certificates'> {
+export function buildSeedData(
+  pinHash: string,
+  pinSalt: string,
+): Omit<DBData, 'results' | 'certificates'> {
   return {
     classes: seedClasses,
     topics: seedTopics,
     questions: seedQuestions,
     gradeSettings: seedGradeSettings,
-    badges: seedBadges,
     config: defaultConfig(pinHash, pinSalt),
   };
 }

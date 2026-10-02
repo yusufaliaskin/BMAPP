@@ -1,28 +1,26 @@
 /**
- * Karşılama — ilk açılışta tek amaçlı ekran: çocuğu teste başlatmaya davet (§6, §38).
+ * Karşılama — kiosk standının ilk ekranı (§6, §38).
+ * Oturum kontrolü yoktur: her SIFIRLA ve her açılış bu ekrana gelir.
+ * Tek amaç: çocuğu teste başlatmaya davet.
  */
 
-import { Redirect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { GlassCard } from '@/components/glass/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
-import { useCurrentStudent } from '@/data/hooks';
 import { palette, space, type } from '@/theme';
 
 const PILLS = [
-  { emoji: '📝', label: 'Kısa testler' },
-  { emoji: '⭐', label: 'Puan topla' },
-  { emoji: '🎖️', label: 'Rozet kazan' },
+  { emoji: '📝', label: 'Kısa test' },
+  { emoji: '⭐', label: 'Puanını gör' },
+  { emoji: '🏆', label: 'İlk 3e sertifika' },
 ];
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const student = useCurrentStudent();
-
-  if (student) return <Redirect href="/" />;
 
   return (
     <Screen>
@@ -36,12 +34,12 @@ export default function WelcomeScreen() {
         </Reveal>
         <Reveal delay={60}>
           <Text style={[type.display, styles.title, { color: palette.ink }]}>
-            Bilinçli Kahraman
+            👋 Hoş geldin!
           </Text>
         </Reveal>
         <Reveal delay={110}>
           <Text style={[type.bodySemi, styles.subtitle, { color: palette.inkSoft }]}>
-            Bağımlılıkla mücadele farkındalık testleri
+            Bağımlılıkla mücadele farkındalık testi · 1-3 dakika
           </Text>
         </Reveal>
         <Reveal delay={170} style={styles.pills}>
@@ -61,7 +59,7 @@ export default function WelcomeScreen() {
         <Button
           label="BAŞLA →"
           onPress={() => router.push('/onboarding/name')}
-          accessibilityHint="İsmni yazacağın ekrana geçer"
+          accessibilityHint="Adını yazacağın ekrana geçer"
         />
         <Text style={[type.caption, styles.caption, { color: palette.inkFaint }]}>
           BEÜN · Bağımlılıkla Mücadele Farkındalık Projesi

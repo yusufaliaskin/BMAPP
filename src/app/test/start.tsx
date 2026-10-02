@@ -1,9 +1,9 @@
 /**
- * Test başlangıç ekranı — yalnız gerekli bilgi: sınıf, soru sayısı, toplam puan (§9).
- * Uzun açıklama yok; tek aksiyon "BAŞLA 🚀".
+ * Test hazırlık ekranı — yalnız gerekli bilgi: sınıf, soru sayısı, toplam puan (§9).
+ * BAŞLA ile benzersiz katılımcı kodu üretilir ve test oturumu açılır (kiosk).
  */
 
-import { Redirect, useRouter } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { GlassCard } from '@/components/glass/GlassCard';
@@ -11,15 +11,10 @@ import { Button } from '@/components/ui/Button';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { startTestSession } from '@/features/test-session';
-import {
-  useAttemptAvailability,
-  useCurrentStudent,
-  useGradeSetting,
-  useQuestions,
-
-} from '@/data/hooks';
+import { useClasses, useGradeSetting, useQuestions, useResults } from '@/data/hooks';
 import { buildTestPlan } from '@/domain/engine/quiz';
-import type { Difficulty } from '@/domain/models';
+import type { Difficulty, Grade } from '@/domain/models';
+import { makeUniqueParticipantCode } from '@/lib/participant';
 import { palette, space, surface, type } from '@/theme';
 
 const DIFFICULTY_LABEL: Record<Difficulty, string> = {
@@ -31,24 +26,29 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
 
 export default function TestStartScreen() {
   const router = useRouter();
-  const student = useCurrentStudent();
-  const grade = student?.grade ?? 1;
-  const settings = useGradeSetting(grade);
+  const { name, classId } = useLocalSearchParams<{ name?: string; classId?: string }>();
+  const classes = useClasses();
   const questions = useQuestions();
-  const availability = useAttemptAvailability(student?.id, grade);
+  const results = useResults();
 
-  if (!student) return <Redirect href="/onboarding/welcome" />;
+  const schoolClass = classes.find((c) => c.id === classId && c.isActive);
+  const grade: Grade = schoolClass?.grade ?? 1;
+  const settings = useGradeSetting(grade);
 
-  const attempt = availability.attemptsUsed;
-  const plan = buildTestPlan(questions, grade, settings, attempt);
-  const section = student.classId.replace(String(student.grade), '');
+  if (!name || !schoolClass) return <Redirect href="/onboarding/welcome" />;
+
+  const plan = buildTestPlan(questions, grade, settings);
 
   const begin = () => {
+    const participantCode = makeUniqueParticipantCode(
+      results.map((result) => result.participantCode),
+    );
     startTestSession({
       plan,
-      studentId: student.id,
-      grade: student.grade,
-      classId: student.classId,
+      participantCode,
+      displayName: name,
+      grade: schoolClass.grade,
+      classId: schoolClass.id,
       startedAt: new Date().toISOString(),
     });
     router.push('/test/question');
@@ -63,7 +63,7 @@ export default function TestStartScreen() {
           </Text>
           <Text style={[type.h1, styles.center, { color: palette.ink }]}>HAZIR MISIN?</Text>
           <Text style={[type.bodySemi, styles.center, { color: palette.inkSoft }]}>
-            {student.grade}/{section} · {DIFFICULTY_LABEL[settings.difficulty]}
+            {schoolClass.grade}/{schoolClass.section} · {DIFFICULTY_LABEL[settings.difficulty]}
           </Text>
         </Reveal>
 
@@ -82,23 +82,13 @@ export default function TestStartScreen() {
             </View>
           </GlassCard>
         </Reveal>
-
-        {!availability.allowed ? (
-          <Reveal delay={140}>
-            <GlassCard style={styles.blockedCard}>
-              <Text style={[type.bodySemi, styles.center, { color: palette.coral }]}>
-                {availability.reason}
-              </Text>
-            </GlassCard>
-          </Reveal>
-        ) : null}
       </View>
 
       <Reveal delay={160}>
         <Button
           label="BAŞLA 🚀"
           onPress={begin}
-          disabled={!availability.allowed || plan.questions.length === 0}
+          disabled={plan.questions.length === 0}
           accessibilityHint="İlk soruyu açar"
         />
       </Reveal>
@@ -139,8 +129,5 @@ const styles = StyleSheet.create({
     width: 1,
     height: 56,
     backgroundColor: surface.glassBorderSoft,
-  },
-  blockedCard: {
-    paddingVertical: space.lg,
   },
 });

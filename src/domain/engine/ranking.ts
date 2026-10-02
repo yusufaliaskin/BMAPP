@@ -1,83 +1,44 @@
 /**
  * Sıralama motoru — sınıf seviyesine göre ayrı listeler (brief §16, §34).
- * Deterministik tie-break: 1) yüksek puan, 2) az yanlış, 3) erken tamamlama, 4) öğrenci id.
- * Tekrar politikası burada uygulanır: 'best' → öğrencinin en iyi sonucu,
- * 'first' → ilk sonucu, 'max_attempts' → en iyi sonucu.
+ * Kiosk modeli: her test sonucu benzersiz bir katılımcıya aittir; sıralama doğrudan
+ * sonuç kayıtları üzerinden kurulur. Deterministik tie-break:
+ * 1) yüksek puan, 2) az yanlış, 3) erken tamamlama, 4) katılımcı kodu.
  */
 
-import type { AppConfig, Grade, RankEntry, Student, TestResult } from '../models';
+import type { Grade, RankEntry, TestResult } from '../models';
+import { sectionOf } from '../models';
 
-function isBetter(a: TestResult, b: TestResult): boolean {
-  if (a.score !== b.score) return a.score > b.score;
-  if (a.wrong !== b.wrong) return a.wrong < b.wrong;
-  if (a.completedAt !== b.completedAt) return a.completedAt < b.completedAt;
-  return a.id < b.id;
-}
-
-/** Öğrencinin politikaya göre temsilci sonucu. */
-export function representativeResult(
-  results: TestResult[],
-  studentId: string,
-  grade: Grade,
-  policy: AppConfig['retakePolicy'],
-): TestResult | undefined {
-  const own = results.filter((r) => r.studentId === studentId && r.grade === grade);
-  if (own.length === 0) return undefined;
-  if (policy === 'first') {
-    return [...own].sort((a, b) => a.completedAt.localeCompare(b.completedAt))[0];
-  }
-  return own.reduce((best, current) => (isBetter(current, best) ? current : best));
-}
-
-export function rankForGrade(
-  results: TestResult[],
-  students: Student[],
-  grade: Grade,
-  config: AppConfig,
-): RankEntry[] {
-  const entries: Omit<RankEntry, 'rank'>[] = [];
-  for (const student of students) {
-    if (student.grade !== grade) continue;
-    const best = representativeResult(results, student.id, grade, config.retakePolicy);
-    if (!best) continue;
-    entries.push({
-      studentId: student.id,
-      score: best.score,
-      correct: best.correct,
-      wrong: best.wrong,
-      completedAt: best.completedAt,
-      resultId: best.id,
-    });
-  }
+export function rankForGrade(results: TestResult[], grade: Grade): RankEntry[] {
+  const entries = results.filter((result) => result.grade === grade);
   entries.sort((a, b) => {
     if (a.score !== b.score) return b.score - a.score;
     if (a.wrong !== b.wrong) return a.wrong - b.wrong;
     if (a.completedAt !== b.completedAt) return a.completedAt < b.completedAt ? -1 : 1;
-    return a.studentId < b.studentId ? -1 : 1;
+    return a.participantCode < b.participantCode ? -1 : 1;
   });
-  return entries.map((entry, index) => ({ ...entry, rank: index + 1 }));
+  return entries.map((result, index) => ({
+    resultId: result.id,
+    participantCode: result.participantCode,
+    displayName: result.displayName,
+    grade: result.grade,
+    section: sectionOf(result.classId),
+    score: result.score,
+    correct: result.correct,
+    wrong: result.wrong,
+    completedAt: result.completedAt,
+    rank: index + 1,
+  }));
 }
 
-export function rankForSection(
-  results: TestResult[],
-  students: Student[],
-  grade: Grade,
-  section: string,
-  config: AppConfig,
-): RankEntry[] {
-  const inSection = new Set(
-    students.filter((s) => s.grade === grade && s.classId === `${grade}${section}`).map((s) => s.id),
+export function rankForSection(results: TestResult[], grade: Grade, section: string): RankEntry[] {
+  const inSection = results.filter(
+    (result) => result.grade === grade && sectionOf(result.classId) === section,
   );
-  return rankForGrade(
-    results.filter((r) => inSection.has(r.studentId)),
-    students,
-    grade,
-    config,
-  );
+  return rankForGrade(inSection, grade);
 }
 
-export function rankOf(entries: RankEntry[], studentId: string): RankEntry | undefined {
-  return entries.find((e) => e.studentId === studentId);
+export function rankOf(entries: RankEntry[], resultId: string): RankEntry | undefined {
+  return entries.find((entry) => entry.resultId === resultId);
 }
 
 export interface SectionStanding {
@@ -91,19 +52,14 @@ export interface SectionStanding {
 
 export function sectionStandings(
   results: TestResult[],
-  students: Student[],
   classes: { id: string; grade: Grade; section: string; isActive: boolean }[],
   grade: Grade,
-  config: AppConfig,
 ): SectionStanding[] {
   return classes
     .filter((c) => c.grade === grade && c.isActive)
     .map((c) => {
-      const members = students.filter((s) => s.classId === c.id);
-      const scored = members
-        .map((s) => representativeResult(results, s.id, grade, config.retakePolicy))
-        .filter((r): r is TestResult => Boolean(r));
-      const totalScore = scored.reduce((sum, r) => sum + r.score, 0);
+      const scored = results.filter((result) => result.classId === c.id);
+      const totalScore = scored.reduce((sum, result) => sum + result.score, 0);
       return {
         classId: c.id,
         grade: c.grade,

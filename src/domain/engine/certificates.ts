@@ -1,10 +1,13 @@
 /**
  * Sertifika motoru — her sınıf seviyesinin ilk 3'ü (brief §19, §20).
- * Numara benzersizdir: {PREFIX}-{yıl}-{sınıf}-{sıra:3}  →  BEUN-2026-3-001
- * Aynı öğrenci + dönem için tekrar üretimde mevcut numara korunur; sıra/puan güncellenir.
+ * Kiosk modeli: katılımcı kodu + dönem ile eşleşir. Numara benzersiz:
+ * {PREFIX}-{yıl}-{sınıf}-{sıra:3}  →  BEUN-2026-3-001
+ * Sıra → madalya: 1 altın, 2 gümüş, 3 bronz. Aynı katılımcı + dönem için tekrar üretimde
+ * mevcut numara korunur; sıra/puan/madalya güncellenir.
  */
 
-import type { AppConfig, Certificate, Grade, RankEntry, Student } from '../models';
+import type { AppConfig, Certificate, Grade, Medal, RankEntry } from '../models';
+import { medalForRank } from '../models';
 
 function nextNumber(
   prefix: string,
@@ -34,7 +37,6 @@ export interface IssueOutcome {
 export function issueTop3(
   ranked: RankEntry[],
   grade: Grade,
-  students: Student[],
   existing: Certificate[],
   config: AppConfig,
   makeId: () => string,
@@ -45,16 +47,25 @@ export function issueTop3(
   const result = [...existing];
 
   for (const entry of ranked.filter((e) => e.rank <= 3 && e.score > 0)) {
-    const student = students.find((s) => s.id === entry.studentId);
-    if (!student) continue;
     const rank = entry.rank as 1 | 2 | 3;
+    const medal: Medal = medalForRank(rank);
     const currentIndex = result.findIndex(
-      (c) => c.studentId === entry.studentId && c.grade === grade && c.period === config.period,
+      (c) =>
+        c.participantCode === entry.participantCode &&
+        c.grade === grade &&
+        c.period === config.period,
     );
     if (currentIndex >= 0) {
       const current = result[currentIndex];
       if (current.rank !== rank || current.score !== entry.score) {
-        const next: Certificate = { ...current, rank, score: entry.score, issuedAt: nowIso };
+        const next: Certificate = {
+          ...current,
+          displayName: entry.displayName,
+          rank,
+          medal,
+          score: entry.score,
+          issuedAt: nowIso,
+        };
         result[currentIndex] = next;
         updated.push(next);
       }
@@ -63,10 +74,12 @@ export function issueTop3(
     const certificate: Certificate = {
       id: makeId(),
       number: nextNumber(config.certificatePrefix, config.period, grade, result),
-      studentId: entry.studentId,
+      participantCode: entry.participantCode,
+      displayName: entry.displayName,
       grade,
-      section: student.classId.replace(String(grade), ''),
+      section: entry.section,
       rank,
+      medal,
       score: entry.score,
       period: config.period,
       issuedAt: nowIso,
@@ -78,19 +91,12 @@ export function issueTop3(
   return { certificates: result, created, updated };
 }
 
-export function certificateForStudent(
+export function certificateForParticipant(
   certificates: Certificate[],
-  studentId: string,
+  participantCode: string,
   period?: string,
 ): Certificate | undefined {
   return certificates.find(
-    (c) => c.studentId === studentId && (period === undefined || c.period === period),
+    (c) => c.participantCode === participantCode && (period === undefined || c.period === period),
   );
-}
-
-export function medalForRank(rank: number): string {
-  if (rank === 1) return '🥇';
-  if (rank === 2) return '🥈';
-  if (rank === 3) return '🥉';
-  return `#${rank}`;
 }

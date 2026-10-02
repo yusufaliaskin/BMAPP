@@ -1,6 +1,7 @@
 /**
- * Admin — Sertifikalar (§20): üretilen tüm sertifikalar; numara, öğrenci, derece,
- * puan ve tarih. Satır aksiyonu gerçek PDF üretir/paylaşır; satıra dokununca önizleme açılır.
+ * Admin — Sertifikalar (§20, kiosk uyarlaması): üretilen tüm sertifikalar; numara,
+ * katılımcı, madalya sınıfı (altın/gümüş/bronz), puan ve tarih.
+ * Satır aksiyonu gerçek PDF üretir/paylaşır; satıra dokununca önizleme açılır.
  */
 
 import { useState } from 'react';
@@ -12,16 +13,21 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { EmptyState } from '@/components/ui/states';
-import { useCertificates, useConfig, useStudents } from '@/data/hooks';
-import { medalForRank } from '@/domain/engine/certificates';
+import { useCertificates, useConfig } from '@/data/hooks';
+import { MEDAL_EMOJI, MEDAL_LABEL } from '@/domain/models';
 import { createCertificatePdf } from '@/lib/certificate-pdf';
 import { formatDateTR } from '@/lib/format';
 import { glassSurface, medal, palette, radius, space, type } from '@/theme';
 
+const MEDAL_TONE: Record<string, string> = {
+  gold: medal.gold,
+  silver: medal.silver,
+  bronze: medal.bronze,
+};
+
 export default function AdminCertificatesScreen() {
   const router = useRouter();
   const certificates = useCertificates();
-  const students = useStudents();
   const config = useConfig();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -32,12 +38,10 @@ export default function AdminCertificatesScreen() {
     if (busyId) return;
     const certificate = certificates.find((c) => c.id === certificateId);
     if (!certificate) return;
-    const student = students.find((s) => s.id === certificate.studentId);
-    if (!student) return;
     setBusyId(certificateId);
     setMessage(null);
     try {
-      await createCertificatePdf(certificate, student, config, { share: true });
+      await createCertificatePdf(certificate, config, { share: true });
       setMessage(`📄 ${certificate.number} PDF hazır.`);
     } catch (error) {
       console.warn('PDF üretilemedi.', error);
@@ -60,60 +64,65 @@ export default function AdminCertificatesScreen() {
           <EmptyState
             emoji="🎓"
             title="Henüz sertifika üretilmedi"
-            message="Sıralamalar ekranından her sınıf seviyesinin ilk 3'ü için sertifika üretebilirsin."
+            message="Sıralamalar ekranından her sınıf seviyesinin ilk 3'ü için altın, gümüş ve bronz sertifika üretebilirsin."
             actionLabel="SIRALAMALARA GİT"
             onAction={() => router.push('/admin/rankings')}
           />
         ) : (
           <View style={styles.list}>
-            {sorted.map((certificate, index) => {
-              const student = students.find((s) => s.id === certificate.studentId);
-              return (
-                <Reveal key={certificate.id} delay={Math.min(index * 40, 320)}>
+            {sorted.map((certificate, index) => (
+              <Reveal key={certificate.id} delay={Math.min(index * 40, 320)}>
+                <GlassCard padded={false}>
                   <PressableScale
                     accessibilityRole="button"
-                    accessibilityLabel={`${certificate.number} sertifikasını önizle`}
+                    accessibilityLabel={`${certificate.number} ${MEDAL_LABEL[certificate.medal]} sertifikasını önizle`}
                     haptic="light"
-                    onPress={() => router.push(`/certificate?studentId=${certificate.studentId}`)}
+                    onPress={() =>
+                      router.push(`/admin/certificate?participantCode=${certificate.participantCode}`)
+                    }
                   >
-                    <GlassCard padded={false}>
-                      <View style={styles.row}>
-                        <View style={styles.medalBubble}>
-                          <Text style={[type.label, { color: medal.gold }]}>
-                            {medalForRank(certificate.rank)}
-                          </Text>
-                        </View>
-                        <View style={styles.mid}>
-                          <Text style={[type.bodyBold, { color: palette.ink }]} numberOfLines={1}>
-                            {student?.fullName ?? 'Bilinmeyen öğrenci'}
-                          </Text>
-                          <Text style={[type.caption, { color: palette.inkFaint }]} numberOfLines={1}>
-                            {certificate.number} · {certificate.grade}. sınıflar ·{' '}
-                            {formatDateTR(certificate.issuedAt)}
-                          </Text>
-                        </View>
-                        <Text style={[type.h3, { color: palette.rewardDeep }]}>
-                          ⭐ {certificate.score}
+                    <View style={styles.row}>
+                      <View
+                        style={[
+                          styles.medalBubble,
+                          { backgroundColor: `${MEDAL_TONE[certificate.medal]}22` },
+                        ]}
+                      >
+                        <Text style={styles.medalEmoji} maxFontSizeMultiplier={1.1}>
+                          {MEDAL_EMOJI[certificate.medal]}
                         </Text>
                       </View>
-                      <View style={styles.rowFooter}>
-                        <PressableScale
-                          accessibilityRole="button"
-                          accessibilityLabel={`${certificate.number} PDF oluştur`}
-                          haptic="light"
-                          onPress={() => void makePdf(certificate.id)}
-                          style={[styles.pdfButton, glassSurface('strong')]}
-                        >
-                          <Text style={[type.label, { color: palette.primary }]}>
-                            {busyId === certificate.id ? '⏳ Hazırlanıyor…' : '📄 PDF'}
-                          </Text>
-                        </PressableScale>
+                      <View style={styles.mid}>
+                        <Text style={[type.bodyBold, { color: palette.ink }]} numberOfLines={1}>
+                          {certificate.displayName}
+                        </Text>
+                        <Text style={[type.caption, { color: palette.inkFaint }]} numberOfLines={1}>
+                          {MEDAL_LABEL[certificate.medal]} · {certificate.number} ·{' '}
+                          {certificate.grade}/{certificate.section} ·{' '}
+                          {formatDateTR(certificate.issuedAt)}
+                        </Text>
                       </View>
-                    </GlassCard>
+                      <Text style={[type.h3, { color: palette.rewardDeep }]}>
+                        ⭐ {certificate.score}
+                      </Text>
+                    </View>
                   </PressableScale>
-                </Reveal>
-              );
-            })}
+                  <View style={styles.rowFooter}>
+                    <PressableScale
+                      accessibilityRole="button"
+                      accessibilityLabel={`${certificate.number} PDF oluştur`}
+                      haptic="light"
+                      onPress={() => void makePdf(certificate.id)}
+                      style={[styles.pdfButton, glassSurface('strong')]}
+                    >
+                      <Text style={[type.label, { color: palette.primary }]}>
+                        {busyId === certificate.id ? '⏳ Hazırlanıyor…' : '📄 PDF'}
+                      </Text>
+                    </PressableScale>
+                  </View>
+                </GlassCard>
+              </Reveal>
+            ))}
           </View>
         )}
       </View>
@@ -142,9 +151,11 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: radius.pill,
-    backgroundColor: palette.rewardSoft,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  medalEmoji: {
+    fontSize: 20,
   },
   mid: {
     flex: 1,

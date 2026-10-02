@@ -1,27 +1,35 @@
 /**
- * CertificateView — sertifikanın uygulama içi önizlemesi.
- * Altın çift çerçeve, proje başlığı, öğrenci adı, derece, puan ve tarih (§19).
+ * CertificateView — sertifikanın uygulama içi önizlemesi (kiosk uyarlaması).
+ * Madalya sınıfına göre çerçeve rengi: altın / gümüş / bronz.
+ * Alanlar: proje başlığı, katılımcı adı, derece, puan, tarih, numara, imzalar (§19).
  */
 
 import { StyleSheet, Text, View } from 'react-native';
 
 import { GlassCard } from '@/components/glass/GlassCard';
-import type { AppConfig, Certificate, Student } from '@/domain/models';
+import type { AppConfig, Certificate } from '@/domain/models';
+import { MEDAL_EMOJI, MEDAL_LABEL } from '@/domain/models';
 import { formatDateLongTR } from '@/lib/format';
-import { medal, palette, space, surface, type } from '@/theme';
+import { medal, palette, space, type } from '@/theme';
 
 interface CertificateViewProps {
   certificate: Certificate;
-  student: Student;
   config: AppConfig;
 }
 
-export function CertificateView({ certificate, student, config }: CertificateViewProps) {
+const MEDAL_TONE = {
+  gold: medal.gold,
+  silver: medal.silver,
+  bronze: medal.bronze,
+} as const;
+
+export function CertificateView({ certificate, config }: CertificateViewProps) {
+  const tone = MEDAL_TONE[certificate.medal];
   const section = `${certificate.grade}/${certificate.section}`;
 
   return (
     <GlassCard glint level="strong" style={styles.outer}>
-      <View style={styles.goldBorder}>
+      <View style={[styles.medalBorder, { borderColor: tone }]}>
         <View style={styles.inner}>
           <Text style={[type.overline, styles.center, { color: palette.primary }]}>
             {config.universityName}
@@ -32,19 +40,25 @@ export function CertificateView({ certificate, student, config }: CertificateVie
           <Text style={[type.h2, styles.title, { color: palette.ink }]}>
             🏆 BAŞARI SERTİFİKASI
           </Text>
-          <Text style={[type.body, styles.center, { color: palette.inkSoft }]}>
-            Bu sertifika
-          </Text>
+          <View style={[styles.medalChip, { backgroundColor: `${tone}22`, borderColor: tone }]}>
+            <Text style={[type.label, { color: tone }]}>
+              {MEDAL_EMOJI[certificate.medal]} {MEDAL_LABEL[certificate.medal].toUpperCase()}{' '}
+              SERTİFİKA
+            </Text>
+          </View>
+          <Text style={[type.body, styles.center, { color: palette.inkSoft }]}>Bu sertifika</Text>
           <Text style={[type.h1, styles.center, { color: palette.primary }]}>
-            {student.fullName.toUpperCase()}
+            {certificate.displayName.toUpperCase()}
           </Text>
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: tone }]} />
           <Text style={[type.bodySemi, styles.center, { color: palette.ink }]}>
             {`${certificate.grade}. Sınıflar ${certificate.rank}.'liği başarısını belgelemek amacıyla verilmiştir.`}
           </Text>
           <View style={styles.metaRow}>
             <View style={styles.metaChip}>
-              <Text style={[type.label, { color: medal.gold }]}>⭐ {certificate.score} puan</Text>
+              <Text style={[type.label, { color: palette.rewardDeep }]}>
+                ⭐ {certificate.score} puan
+              </Text>
             </View>
             <View style={styles.metaChip}>
               <Text style={[type.label, { color: palette.inkSoft }]}>🏫 {section}</Text>
@@ -60,7 +74,7 @@ export function CertificateView({ certificate, student, config }: CertificateVie
                 {config.signatoryLeft}
               </Text>
             </View>
-            <Text style={[type.caption, { color: palette.inkFaint }]}>
+            <Text style={[type.caption, styles.center, { color: palette.inkFaint }]}>
               No: {certificate.number}
             </Text>
             <View style={styles.signCol}>
@@ -80,16 +94,15 @@ const styles = StyleSheet.create({
   outer: {
     padding: space.sm,
   },
-  goldBorder: {
+  medalBorder: {
     borderWidth: 2,
-    borderColor: medal.gold,
     borderRadius: 20,
     padding: space.xs,
   },
   inner: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: surface.glassBorderSoft,
+    borderColor: 'rgba(23,35,63,0.06)',
     padding: space.xl,
     gap: space.sm,
     alignItems: 'center',
@@ -100,11 +113,17 @@ const styles = StyleSheet.create({
   title: {
     marginTop: space.xs,
   },
+  medalChip: {
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.xs,
+    marginBottom: space.xs,
+  },
   divider: {
     width: 120,
     height: 3,
     borderRadius: 2,
-    backgroundColor: medal.gold,
     marginVertical: space.xs,
   },
   metaRow: {

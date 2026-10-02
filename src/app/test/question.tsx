@@ -74,10 +74,10 @@ export default function QuestionScreen() {
     setSaveError(null);
     try {
       const outcome = saveTestResult({
-        studentId: session.studentId,
+        participantCode: session.participantCode,
+        displayName: session.displayName,
         grade: session.grade,
         classId: session.classId,
-        attempt: session.plan.attempt,
         startedAt: session.startedAt,
         questions: session.plan.questions,
         answers,
@@ -136,13 +136,17 @@ export default function QuestionScreen() {
               Kaydedilemedi
             </Text>
             <Text style={[type.body, styles.center, { color: palette.inkSoft }]}>{saveError}</Text>
-            <Button label="TEKRAR DENE" onPress={() => void finishAndSave()} />
             <Button
-              label="Ana sayfaya dön"
+              label="TEKRAR DENE"
+              onPress={() => void finishAndSave()}
+              accessibilityHint="Sonucu yeniden kaydetmeyi dener"
+            />
+            <Button
+              label="Baştan başla"
               variant="ghost"
               onPress={() => {
                 clearTestSession();
-                router.replace('/');
+                router.replace('/onboarding/welcome');
               }}
             />
           </GlassCard>
@@ -250,7 +254,7 @@ export default function QuestionScreen() {
               variant="danger"
               onPress={() => {
                 clearTestSession();
-                router.back();
+                router.replace('/onboarding/welcome');
               }}
             />
           </GlassCard>

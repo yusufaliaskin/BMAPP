@@ -1,6 +1,6 @@
 /**
- * İsim adımı — tek soru: "Adın ne?" (brief §6). Uzun açıklama yok,
- * büyük giriş alanı, tek ana aksiyon. Ad yalnız admin tarafında görünür (§7).
+ * Katılımcı adı — tek soru: "Adın ne?" (brief §6, kiosk akışı).
+ * Uzun kayıt yok: yalnız görünen ad/lakap alınır; benzersiz katılımcı kodunu sistem üretir.
  */
 
 import { useState } from 'react';
@@ -13,7 +13,7 @@ import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
 import { palette, space, type } from '@/theme';
 
-const NAME_PATTERN = /^[A-Za-zÇĞİÖŞÜçğıöşü' -]{2,20}$/;
+const NAME_PATTERN = /^[A-Za-zÇĞİÖŞÜçğıöşü0-9' -]{2,20}$/;
 
 export default function NameScreen() {
   const router = useRouter();
@@ -25,10 +25,10 @@ export default function NameScreen() {
 
   const goNext = () => {
     if (!valid) {
-      setError('Lütfen adını yaz (2-20 harf).');
+      setError('Lütfen adını yaz (2-20 karakter).');
       return;
     }
-    router.push({ pathname: '/onboarding/character', params: { name: trimmed } });
+    router.push({ pathname: '/onboarding/grade', params: { name: trimmed } });
   };
 
   return (
@@ -39,11 +39,13 @@ export default function NameScreen() {
             👋
           </Text>
           <Text style={[type.h1, styles.center, { color: palette.ink }]}>Merhaba!</Text>
-          <Text style={[type.h2, styles.center, { color: palette.inkSoft }]}>Adın ne?</Text>
+          <Text style={[type.h2, styles.center, { color: palette.inkSoft }]}>
+            Adın veya lakabın ne?
+          </Text>
         </Reveal>
         <Reveal delay={80}>
           <TextField
-            label="Adın"
+            label="Adın veya lakabın"
             placeholder="Örn: Efe"
             value={name}
             onChangeText={(value) => {
@@ -51,7 +53,7 @@ export default function NameScreen() {
               if (error) setError(undefined);
             }}
             onBlur={() => {
-              if (trimmed.length > 0 && !valid) setError('Lütfen adını yaz (2-20 harf).');
+              if (trimmed.length > 0 && !valid) setError('Lütfen adını yaz (2-20 karakter).');
             }}
             onSubmitEditing={goNext}
             autoFocus
@@ -60,7 +62,7 @@ export default function NameScreen() {
             autoCorrect={false}
             returnKeyType="next"
             error={error}
-            hint="Görünen adın: karakterinle birlikte sıralamada görüneceksin."
+            hint="Bu ad sonuç ekranında ve sıralamada görünecek."
           />
         </Reveal>
       </View>
@@ -69,7 +71,7 @@ export default function NameScreen() {
           label="DEVAM ET →"
           onPress={goNext}
           disabled={trimmed.length === 0}
-          accessibilityHint="Karakter seçme ekranına geçer"
+          accessibilityHint="Sınıf seçme ekranına geçer"
         />
       </Reveal>
     </Screen>

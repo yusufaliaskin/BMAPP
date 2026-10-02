@@ -1,6 +1,6 @@
 /**
- * Admin — Test Analizi (§25): gerçek sonuçlardan istatistikler.
- * Ortalamalar, en çok yanlış/doğru yapılan sorular, sınıf ve konu bazlı başarı yüzdeleri.
+ * Admin — Test Analizi (§25, kiosk uyarlaması): gerçek sonuçlardan istatistikler.
+ * Her sonuç benzersiz bir katılımcıya aittir; ortalamalar doğrudan sonuç kayıtlarından gelir.
  */
 
 import { useMemo } from 'react';
@@ -13,8 +13,7 @@ import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { StatCard } from '@/components/ui/StatCard';
 import { EmptyState } from '@/components/ui/states';
-import { useConfig, useQuestions, useResults, useStudents, useTopics } from '@/data/hooks';
-import { representativeResult } from '@/domain/engine/ranking';
+import { useQuestions, useResults, useTopics } from '@/data/hooks';
 import { GRADES } from '@/domain/models';
 import { palette, space, type } from '@/theme';
 
@@ -26,25 +25,22 @@ interface QuestionStat {
 
 export default function AdminAnalyticsScreen() {
   const router = useRouter();
-  const students = useStudents();
   const results = useResults();
   const questions = useQuestions();
   const topics = useTopics();
-  const config = useConfig();
 
   const stats = useMemo(() => {
-    const bests = students
-      .map((student) => representativeResult(results, student.id, student.grade, config.retakePolicy))
-      .filter((result) => result !== undefined);
     const avgScore =
-      bests.length > 0 ? Math.round(bests.reduce((s, r) => s + r.score, 0) / bests.length) : 0;
+      results.length > 0
+        ? Math.round(results.reduce((sum, r) => sum + r.score, 0) / results.length)
+        : 0;
     const avgCorrect =
       results.length > 0
-        ? (results.reduce((s, r) => s + r.correct, 0) / results.length).toFixed(1)
+        ? (results.reduce((sum, r) => sum + r.correct, 0) / results.length).toFixed(1)
         : '0.0';
     const avgWrong =
       results.length > 0
-        ? (results.reduce((s, r) => s + r.wrong, 0) / results.length).toFixed(1)
+        ? (results.reduce((sum, r) => sum + r.wrong, 0) / results.length).toFixed(1)
         : '0.0';
 
     const perQuestion = new Map<string, QuestionStat>();
@@ -101,7 +97,7 @@ export default function AdminAnalyticsScreen() {
       .filter((entry) => entry.total > 0);
 
     return {
-      participants: bests.length,
+      participants: results.length,
       avgScore,
       avgCorrect,
       avgWrong,
@@ -110,7 +106,7 @@ export default function AdminAnalyticsScreen() {
       perGrade,
       perTopic,
     };
-  }, [students, results, questions, topics, config.retakePolicy]);
+  }, [results, questions, topics]);
 
   const mostWrongQuestion = stats.mostWrong
     ? questions.find((q) => q.id === stats.mostWrong!.questionId)
@@ -126,7 +122,7 @@ export default function AdminAnalyticsScreen() {
           <EmptyState
             emoji="📈"
             title="Henüz veri yok"
-            message="Öğrenciler test çözdükçe analizler burada oluşur."
+            message="Katılımcılar test çözdükçe analizler burada oluşur."
           />
         ) : (
           <>
@@ -144,7 +140,9 @@ export default function AdminAnalyticsScreen() {
             {mostWrongQuestion && stats.mostWrong ? (
               <Reveal delay={80}>
                 <GlassCard style={styles.highlightCard}>
-                  <Text style={[type.overline, { color: palette.coral }]}>En çok yanlış yapılan soru</Text>
+                  <Text style={[type.overline, { color: palette.coral }]}>
+                    En çok yanlış yapılan soru
+                  </Text>
                   <Text style={[type.bodyBold, { color: palette.ink }]}>
                     {mostWrongQuestion.visual} {mostWrongQuestion.text}
                   </Text>
@@ -159,7 +157,9 @@ export default function AdminAnalyticsScreen() {
             {mostCorrectQuestion && stats.mostCorrect ? (
               <Reveal delay={110}>
                 <GlassCard style={styles.highlightCard}>
-                  <Text style={[type.overline, { color: palette.success }]}>En çok doğru yapılan soru</Text>
+                  <Text style={[type.overline, { color: palette.success }]}>
+                    En çok doğru yapılan soru
+                  </Text>
                   <Text style={[type.bodyBold, { color: palette.ink }]}>
                     {mostCorrectQuestion.visual} {mostCorrectQuestion.text}
                   </Text>
@@ -180,7 +180,7 @@ export default function AdminAnalyticsScreen() {
                         {entry.grade}. Sınıflar
                       </Text>
                       <Text style={[type.caption, { color: palette.inkSoft }]}>
-                        %{entry.percent} · {entry.count} test
+                        %{entry.percent} · {entry.count} katılımcı
                       </Text>
                     </View>
                     <ProgressBar progress={entry.percent / 100} height={10} color="primary" />

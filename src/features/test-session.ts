@@ -1,7 +1,7 @@
 /**
- * Aktif test oturumu — bellek içi, ekranlar arası geçici durum.
- * Test bitmeden kapanırsa sonuç kaydedilmez (§15: yalnız tamamlanmış test puanlanır);
- * derin bağlantıyla soru ekranına gelinirse start ekranına geri yönlendirilir.
+ * Aktif test oturumu — bellek içi, ekranlar arası geçici durum (kiosk).
+ * SIFIRLA bu modülü temizler; veritabanına dokunulmaz.
+ * Test bitmeden uygulama kapanırsa sonuç kaydedilmez (yalnız tamamlanmış test puanlanır).
  */
 
 import type { Grade } from '@/domain/models';
@@ -9,7 +9,8 @@ import type { TestPlan } from '@/domain/engine/quiz';
 
 export interface TestSession {
   plan: TestPlan;
-  studentId: string;
+  participantCode: string;
+  displayName: string;
   grade: Grade;
   classId: string;
   startedAt: string;
