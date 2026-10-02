@@ -7,6 +7,7 @@
 import { useMemo, useSyncExternalStore } from 'react';
 
 import type {
+  AdminUser,
   Certificate,
   DBState,
   Grade,
@@ -74,6 +75,10 @@ export function useResultById(resultId: string | undefined): TestResult | null {
 
 export function useCertificates(): Certificate[] {
   return useDB().data.certificates;
+}
+
+export function useAdmins(): AdminUser[] {
+  return useDB().data.admins;
 }
 
 export function useRankingsFor(grade: Grade, section: string | null): RankEntry[] {

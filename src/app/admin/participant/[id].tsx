@@ -4,30 +4,42 @@
  * Kayıt değiştirilemez; salt görünüm.
  */
 
+import { useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { GlassCard } from '@/components/glass/GlassCard';
 import { Button } from '@/components/ui/Button';
+import { Chip } from '@/components/ui/Chip';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { StatCard } from '@/components/ui/StatCard';
 import { EmptyState } from '@/components/ui/states';
 import {
   useCertificates,
+  useClassesForGrade,
   useConfig,
   useQuestions,
   useRankingsFor,
   useResultById,
 } from '@/data/hooks';
+import { deleteParticipantResult, updateParticipantClass } from '@/data/actions';
 import { certificateForParticipant } from '@/domain/engine/certificates';
 import { rankOf } from '@/domain/engine/ranking';
-import { MEDAL_EMOJI, MEDAL_LABEL } from '@/domain/models';
+import { MEDAL_EMOJI, MEDAL_LABEL, sectionOf, type Grade } from '@/domain/models';
 import { formatDateTimeTR, formatDuration } from '@/lib/format';
 import { emojiForCode } from '@/lib/participant';
 import { glassSurface, palette, radius, space, type } from '@/theme';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
+
+const GRADE_OPTIONS = [
+  { value: 1, label: '1' },
+  { value: 2, label: '2' },
+  { value: 3, label: '3' },
+  { value: 4, label: '4' },
+] as const;
 
 export default function AdminParticipantDetailScreen() {
   const router = useRouter();
@@ -37,6 +49,14 @@ export default function AdminParticipantDetailScreen() {
   const certificates = useCertificates();
   const config = useConfig();
   const ranked = useRankingsFor(result?.grade ?? 1, null);
+
+  const [fixGrade, setFixGrade] = useState<Grade>(result?.grade ?? 3);
+  const [fixSection, setFixSection] = useState<string | null>(
+    result ? sectionOf(result.classId) : null,
+  );
+  const [fixMessage, setFixMessage] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const fixClasses = useClassesForGrade(fixGrade);
 
   if (!result) {
     return (
@@ -152,6 +172,86 @@ export default function AdminParticipantDetailScreen() {
             })}
           </GlassCard>
         </Reveal>
+
+        <Reveal delay={180}>
+          <GlassCard style={styles.answersCard}>
+            <Text style={[type.h3, { color: palette.ink }]}>🛠️ Sınıfı Düzelt</Text>
+            <Text style={[type.caption, { color: palette.inkFaint }]}>
+              Yanlış sınıf/şube seçildiyse buradan düzeltilir. Sıralama yeni sınıfa göre işler;
+              varsa sertifika kaydı da güncellenir.
+            </Text>
+            <SegmentedControl
+              accessibilityLabel="Sınıf seçimi"
+              options={GRADE_OPTIONS.map((option) => ({ ...option }))}
+              value={fixGrade}
+              onChange={(value) => {
+                setFixGrade(value as Grade);
+                setFixSection(null);
+                setFixMessage(null);
+              }}
+            />
+            <View style={styles.chipsWrap}>
+              {fixClasses.map((item) => (
+                <Chip
+                  key={item.id}
+                  label={item.section}
+                  selected={fixSection === item.section}
+                  onPress={() => {
+                    setFixSection(item.section);
+                    setFixMessage(null);
+                  }}
+                />
+              ))}
+            </View>
+            {fixMessage ? (
+              <Text style={[type.caption, { color: palette.success }]}>{fixMessage}</Text>
+            ) : null}
+            <Button
+              label="SINIFI KAYDET"
+              variant="glass"
+              disabled={
+                !fixSection || (fixGrade === result.grade && fixSection === section)
+              }
+              onPress={() => {
+                if (!fixSection) return;
+                updateParticipantClass(result.id, fixGrade, fixSection);
+                setFixMessage(`✅ Sınıf güncellendi: ${fixGrade}/${fixSection}`);
+              }}
+            />
+          </GlassCard>
+        </Reveal>
+
+        <Reveal delay={210}>
+          <GlassCard style={styles.dangerCard}>
+            <Text style={[type.h3, { color: palette.coral }]}>🗑️ Kaydı Sil</Text>
+            <Text style={[type.caption, { color: palette.inkSoft }]}>
+              Bu katılımcının sonucu ve varsa sertifikası silinir. Bu işlem geri alınamaz.
+            </Text>
+            {confirmDelete ? (
+              <View style={styles.confirmActions}>
+                <Button
+                  label="EVET, SİL"
+                  variant="danger"
+                  onPress={() => {
+                    deleteParticipantResult(result.id);
+                    router.back();
+                  }}
+                />
+                <Button
+                  label="VAZGEÇ"
+                  variant="glass"
+                  onPress={() => setConfirmDelete(false)}
+                />
+              </View>
+            ) : (
+              <Button
+                label="KAYDI SİL"
+                variant="danger"
+                onPress={() => setConfirmDelete(true)}
+              />
+            )}
+          </GlassCard>
+        </Reveal>
       </View>
     </Screen>
   );
@@ -186,6 +286,17 @@ const styles = StyleSheet.create({
   },
   answersCard: {
     gap: space.md,
+  },
+  chipsWrap: {
+    flexDirection: 'row',
+    gap: space.sm,
+  },
+  dangerCard: {
+    gap: space.md,
+    borderColor: palette.coralSoft,
+  },
+  confirmActions: {
+    gap: space.sm,
   },
   answerRow: {
     borderRadius: radius.lg,

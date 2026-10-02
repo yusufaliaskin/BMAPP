@@ -11,11 +11,12 @@ import { StyleSheet, Text, View } from 'react-native';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { AvatarBubble } from '@/components/ui/AvatarBubble';
 import { Button } from '@/components/ui/Button';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { EmptyState } from '@/components/ui/states';
-import { issueCertificatesForGrade } from '@/data/actions';
+import { deleteParticipantResult, issueCertificatesForGrade } from '@/data/actions';
 import { useCertificates, useRankingsFor } from '@/data/hooks';
 import { MEDAL_EMOJI, MEDAL_LABEL } from '@/domain/models';
 import type { Grade } from '@/domain/models';
@@ -35,6 +36,7 @@ export default function AdminRankingsScreen() {
   const [grade, setGrade] = useState<Grade>(3);
   const [busy, setBusy] = useState(false);
   const [report, setReport] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const ranked = useRankingsFor(grade, null);
 
@@ -140,7 +142,50 @@ export default function AdminRankingsScreen() {
                         ✅ {entry.correct} · ❌ {entry.wrong}
                       </Text>
                     </View>
+                    <PressableScale
+                      accessibilityRole="button"
+                      accessibilityLabel={`${entry.displayName} kaydını sil`}
+                      haptic="light"
+                      onPress={() => {
+                        setConfirmId(entry.resultId);
+                        setReport(null);
+                      }}
+                      style={styles.trashButton}
+                    >
+                      <Text style={styles.trashIcon} maxFontSizeMultiplier={1.1}>
+                        🗑️
+                      </Text>
+                    </PressableScale>
                   </View>
+                  {confirmId === entry.resultId ? (
+                    <View style={styles.confirmRow}>
+                      <Text style={[type.caption, styles.confirmText]}>
+                        {entry.displayName} kaydı silinsin mi? Varsa sertifikası da silinir.
+                      </Text>
+                      <View style={styles.confirmActions}>
+                        <Button
+                          label="EVET, SİL"
+                          variant="danger"
+                          size="md"
+                          fullWidth={false}
+                          onPress={() => {
+                            deleteParticipantResult(entry.resultId);
+                            setConfirmId(null);
+                            setReport(
+                              `🗑️ ${entry.displayName} kaydı silindi. Sertifika gerekirse yeniden üretin.`,
+                            );
+                          }}
+                        />
+                        <Button
+                          label="VAZGEÇ"
+                          variant="glass"
+                          size="md"
+                          fullWidth={false}
+                          onPress={() => setConfirmId(null)}
+                        />
+                      </View>
+                    </View>
+                  ) : null}
                 </Reveal>
               );
             })}
@@ -196,5 +241,29 @@ const styles = StyleSheet.create({
   rowScore: {
     alignItems: 'flex-end',
     gap: 2,
+  },
+  trashButton: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.pill,
+    backgroundColor: palette.coralSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trashIcon: {
+    fontSize: 16,
+  },
+  confirmRow: {
+    gap: space.sm,
+    paddingHorizontal: space.md,
+    paddingBottom: space.sm,
+  },
+  confirmText: {
+    color: palette.coral,
+  },
+  confirmActions: {
+    flexDirection: 'row',
+    gap: space.sm,
+    flexWrap: 'wrap',
   },
 });

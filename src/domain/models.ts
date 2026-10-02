@@ -106,8 +106,15 @@ export interface AppConfig {
   signatoryRight: string;
   /** Puana göre unvan kuralları (yüksek eşik önce gelir). */
   titles: TitleRule[];
-  adminPinHash: string;
-  adminPinSalt: string;
+}
+
+/** Yönetici hesabı — PIN düz metin saklanmaz; SHA-256 + rastgele tuz (§35). */
+export interface AdminUser {
+  id: string;
+  name: string;
+  pinHash: string;
+  salt: string;
+  createdAt: string;
 }
 
 export interface RankEntry {
@@ -124,6 +131,7 @@ export interface RankEntry {
 }
 
 export interface DBData {
+  admins: AdminUser[];
   classes: SchoolClass[];
   topics: Topic[];
   questions: Question[];

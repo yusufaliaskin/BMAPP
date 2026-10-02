@@ -91,7 +91,7 @@ export const seedGradeSettings: GradeSettings[] = [
   { grade: 4, difficulty: 'medium-hard', questionCount: 12 },
 ];
 
-export const defaultConfig = (pinHash: string, pinSalt: string): AppConfig => ({
+export const defaultConfig = (): AppConfig => ({
   certificatePrefix: 'BEUN',
   period: '2026',
   projectTitle: 'Bağımlılıkla Mücadele Farkındalık Projesi',
@@ -99,11 +99,10 @@ export const defaultConfig = (pinHash: string, pinSalt: string): AppConfig => ({
   signatoryLeft: 'Proje Ekibi',
   signatoryRight: 'Danışman Öğretmen',
   titles: seedTitles,
-  adminPinHash: pinHash,
-  adminPinSalt: pinSalt,
 });
 
 export const DEFAULT_ADMIN_PIN = '3579';
+export const DEFAULT_ADMIN_NAME = 'Yönetici';
 
 /**
  * Soru bankası — 1. sınıf 5 / 2. sınıf 7 / 3. sınıf 10 / 4. sınıf 12 (brief §3).
@@ -603,15 +602,12 @@ export const seedQuestions: Question[] = [
   },
 ];
 
-export function buildSeedData(
-  pinHash: string,
-  pinSalt: string,
-): Omit<DBData, 'results' | 'certificates'> {
+export function buildSeedData(): Omit<DBData, 'results' | 'certificates' | 'admins'> {
   return {
     classes: seedClasses,
     topics: seedTopics,
     questions: seedQuestions,
     gradeSettings: seedGradeSettings,
-    config: defaultConfig(pinHash, pinSalt),
+    config: defaultConfig(),
   };
 }

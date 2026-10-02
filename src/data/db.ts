@@ -4,8 +4,8 @@
  * yazma işlemi kısa bir debounce ile diske indirilir. Kiosk modeli: oturum durumu yoktur.
  */
 
-import type { DBData, DBState } from '../domain/models';
-import { buildSeedData, DEFAULT_ADMIN_PIN } from '../domain/content/seed';
+import type { AdminUser, DBData, DBState } from '../domain/models';
+import { buildSeedData, DEFAULT_ADMIN_NAME, DEFAULT_ADMIN_PIN } from '../domain/content/seed';
 import { makeSalt, hashPin } from '../lib/pin';
 import { SCHEMA_VERSION, loadState, saveState } from './persistence';
 
@@ -55,19 +55,31 @@ export async function flushPersist(): Promise<void> {
   await persist();
 }
 
+async function buildFirstAdmin(): Promise<AdminUser> {
+  const salt = makeSalt();
+  const pinHash = await hashPin(DEFAULT_ADMIN_PIN, salt);
+  return {
+    id: 'admin-1',
+    name: DEFAULT_ADMIN_NAME,
+    pinHash,
+    salt,
+    createdAt: new Date().toISOString(),
+  };
+}
+
 export async function initStore(): Promise<void> {
   const loaded = await loadState();
   if (loaded) {
-    state = loaded;
+    state = loaded.state;
     emit();
+    if (loaded.migrated) await flushPersist();
     return;
   }
-  const salt = makeSalt();
-  const pinHash = await hashPin(DEFAULT_ADMIN_PIN, salt);
-  const seed = buildSeedData(pinHash, salt);
+  const seed = buildSeedData();
   state = {
     version: SCHEMA_VERSION,
     data: {
+      admins: [await buildFirstAdmin()],
       results: [],
       certificates: [],
       ...seed,

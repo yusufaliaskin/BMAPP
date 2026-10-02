@@ -5,6 +5,7 @@
  */
 
 import type {
+  AdminUser,
   AppConfig,
   Grade,
   GradeSettings,
@@ -99,11 +100,118 @@ export function updateConfig(partial: Partial<AppConfig>): void {
   updateData((data) => ({ ...data, config: { ...data.config, ...partial } }));
 }
 
-export async function changeAdminPin(newPin: string): Promise<void> {
+export interface AdminMutationResult {
+  ok: boolean;
+  error?: string;
+}
+
+/** Yeni yönetici ekler; PIN doğrulanır ve hash'lenerek saklanır. */
+export async function addAdmin(name: string, pin: string): Promise<AdminMutationResult> {
+  const trimmed = name.trim();
+  if (trimmed.length < 2) {
+    return { ok: false, error: 'Yönetici adı en az 2 karakter olmalı.' };
+  }
+  if (!/^\d{4}$/.test(pin)) {
+    return { ok: false, error: 'PIN 4 haneli olmalı.' };
+  }
+  const { data } = getState();
+  if (
+    data.admins.some(
+      (admin) => admin.name.toLocaleLowerCase('tr') === trimmed.toLocaleLowerCase('tr'),
+    )
+  ) {
+    return { ok: false, error: 'Bu isimde bir yönetici zaten var.' };
+  }
   const salt = makeSalt();
-  const pinHash = await hashPin(newPin, salt);
-  updateConfig({ adminPinHash: pinHash, adminPinSalt: salt });
+  const pinHash = await hashPin(pin, salt);
+  const admin: AdminUser = {
+    id: makeId(),
+    name: trimmed,
+    pinHash,
+    salt,
+    createdAt: new Date().toISOString(),
+  };
+  updateData((current) => ({ ...current, admins: [...current.admins, admin] }));
   await flushPersist();
+  return { ok: true };
+}
+
+export async function changeAdminPin(adminId: string, pin: string): Promise<AdminMutationResult> {
+  if (!/^\d{4}$/.test(pin)) {
+    return { ok: false, error: 'PIN 4 haneli olmalı.' };
+  }
+  const { data } = getState();
+  if (!data.admins.some((admin) => admin.id === adminId)) {
+    return { ok: false, error: 'Yönetici bulunamadı.' };
+  }
+  const salt = makeSalt();
+  const pinHash = await hashPin(pin, salt);
+  updateData((current) => ({
+    ...current,
+    admins: current.admins.map((admin) =>
+      admin.id === adminId ? { ...admin, pinHash, salt } : admin,
+    ),
+  }));
+  await flushPersist();
+  return { ok: true };
+}
+
+/** Yönetici siler — son yönetici silinemez (panele giriş kapısı açık kalmalı). */
+export function deleteAdmin(adminId: string): AdminMutationResult {
+  const { data } = getState();
+  if (data.admins.length <= 1) {
+    return { ok: false, error: 'Son yönetici silinemez.' };
+  }
+  if (!data.admins.some((admin) => admin.id === adminId)) {
+    return { ok: false, error: 'Yönetici bulunamadı.' };
+  }
+  updateData((current) => ({
+    ...current,
+    admins: current.admins.filter((admin) => admin.id !== adminId),
+  }));
+  void flushPersist();
+  return { ok: true };
+}
+
+/** Katılımcı kaydını siler; aynı katılımcının sertifikaları da silinir (yeniden üretilebilir). */
+export function deleteParticipantResult(resultId: string): void {
+  updateData((data) => {
+    const target = data.results.find((result) => result.id === resultId);
+    if (!target) return data;
+    return {
+      ...data,
+      results: data.results.filter((result) => result.id !== resultId),
+      certificates: data.certificates.filter(
+        (certificate) => certificate.participantCode !== target.participantCode,
+      ),
+    };
+  });
+  void flushPersist();
+}
+
+/**
+ * Katılımcının sınıf/şubesini düzeltir (yanlış seçim telafisi).
+ * Sıralama yeni sınıfa göre işler; varsa sertifika kaydının grade/section alanları da
+ * güncellenir (numara değişmez — benzersiz kimlik korunur).
+ */
+export function updateParticipantClass(resultId: string, grade: Grade, section: string): void {
+  updateData((data) => {
+    const target = data.results.find((result) => result.id === resultId);
+    if (!target) return data;
+    const classId = `${grade}${section}`;
+    return {
+      ...data,
+      results: data.results.map((result) =>
+        result.id === resultId ? { ...result, grade, classId } : result,
+      ),
+      certificates: data.certificates.map((certificate) =>
+        certificate.participantCode === target.participantCode
+          ? { ...certificate, grade, section }
+          : certificate,
+      ),
+    };
+  });
+  void flushPersist();
 }
 
 export function updateGradeSetting(

@@ -1,21 +1,23 @@
 /**
  * Admin — Ayarlar (kiosk uyarlaması): kademe soru sayısı/zorluk (§3),
- * sertifika başlıkları (§20), PIN değiştirme (§35) ve katılımcı verisi sıfırlama.
+ * sertifika başlıkları (§20), yönetici hesapları bağlantısı ve katılımcı verisi sıfırlama.
  * Tekrar politikası YOKTUR: kiosk modelinde her katılımcı teste bir kez girer.
  */
 
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { GlassCard } from '@/components/glass/GlassCard';
 import { Button } from '@/components/ui/Button';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Stepper } from '@/components/ui/Stepper';
 import { TextField } from '@/components/ui/TextField';
-import { changeAdminPin, clearParticipantData, updateConfig, updateGradeSetting } from '@/data/actions';
+import { clearParticipantData, updateConfig, updateGradeSetting } from '@/data/actions';
 import { useConfig, useGradeSettings, useResults } from '@/data/hooks';
 import type { Difficulty, Grade } from '@/domain/models';
 import { palette, space, surface, type } from '@/theme';
@@ -43,11 +45,6 @@ export default function AdminSettingsScreen() {
   });
   const [certSaved, setCertSaved] = useState(false);
 
-  const [newPin, setNewPin] = useState('');
-  const [confirmPin, setConfirmPin] = useState('');
-  const [pinMessage, setPinMessage] = useState<string | null>(null);
-  const [pinError, setPinError] = useState<string | null>(null);
-
   const [confirmClear, setConfirmClear] = useState(false);
   const [cleared, setCleared] = useState(false);
 
@@ -56,27 +53,36 @@ export default function AdminSettingsScreen() {
     setCertSaved(true);
   };
 
-  const changePin = async () => {
-    setPinError(null);
-    setPinMessage(null);
-    if (!/^\d{4}$/.test(newPin)) {
-      setPinError('PIN 4 haneli olmalı.');
-      return;
-    }
-    if (newPin !== confirmPin) {
-      setPinError('PINler aynı değil.');
-      return;
-    }
-    await changeAdminPin(newPin);
-    setNewPin('');
-    setConfirmPin('');
-    setPinMessage('✅ PIN güncellendi.');
-  };
-
   return (
     <Screen title="Ayarlar" onBack={() => router.back()} scroll keyboard>
       <View style={styles.container}>
         <Reveal>
+          <PressableScale
+            accessibilityRole="button"
+            accessibilityLabel="Yöneticiler. Hesap ekleme, PIN belirleme, silme"
+            haptic="light"
+            onPress={() => router.push('/admin/admins')}
+          >
+            <GlassCard padded={false}>
+              <View style={styles.linkRow}>
+                <View style={styles.linkEmoji}>
+                  <Text style={styles.linkEmojiText} maxFontSizeMultiplier={1.1}>
+                    🧑‍💼
+                  </Text>
+                </View>
+                <View style={styles.linkText}>
+                  <Text style={[type.bodyBold, { color: palette.ink }]}>Yöneticiler</Text>
+                  <Text style={[type.caption, { color: palette.inkFaint }]}>
+                    Hesap ekleme, PIN belirleme, silme
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={palette.inkFaint} />
+              </View>
+            </GlassCard>
+          </PressableScale>
+        </Reveal>
+
+        <Reveal delay={50}>
           <GlassCard style={styles.card}>
             <Text style={[type.h3, { color: palette.ink }]}>📚 Kademe Ayarları</Text>
             <Text style={[type.caption, { color: palette.inkFaint }]}>
@@ -111,7 +117,7 @@ export default function AdminSettingsScreen() {
           </GlassCard>
         </Reveal>
 
-        <Reveal delay={60}>
+        <Reveal delay={100}>
           <GlassCard style={styles.card}>
             <Text style={[type.h3, { color: palette.ink }]}>🎓 Sertifika Başlıkları</Text>
             <TextField
@@ -158,39 +164,7 @@ export default function AdminSettingsScreen() {
           </GlassCard>
         </Reveal>
 
-        <Reveal delay={120}>
-          <GlassCard style={styles.card}>
-            <Text style={[type.h3, { color: palette.ink }]}>🔐 Admin PIN</Text>
-            <TextField
-              label="Yeni PIN"
-              value={newPin}
-              onChangeText={(value) => setNewPin(value.replace(/[^0-9]/g, '').slice(0, 4))}
-              keyboardType="number-pad"
-              secureTextEntry
-              maxLength={4}
-            />
-            <TextField
-              label="Yeni PIN (tekrar)"
-              value={confirmPin}
-              onChangeText={(value) => setConfirmPin(value.replace(/[^0-9]/g, '').slice(0, 4))}
-              keyboardType="number-pad"
-              secureTextEntry
-              maxLength={4}
-              error={pinError ?? undefined}
-            />
-            {pinMessage ? (
-              <Text style={[type.caption, { color: palette.success }]}>{pinMessage}</Text>
-            ) : null}
-            <Button
-              label="PIN'İ GÜNCELLE"
-              variant="glass"
-              onPress={() => void changePin()}
-              disabled={newPin.length < 4 || confirmPin.length < 4}
-            />
-          </GlassCard>
-        </Reveal>
-
-        <Reveal delay={180}>
+        <Reveal delay={150}>
           <GlassCard style={styles.dangerCard}>
             <Text style={[type.h3, { color: palette.coral }]}>⚠️ Katılımcı Verilerini Sil</Text>
             <Text style={[type.caption, { color: palette.inkSoft }]}>
@@ -233,6 +207,27 @@ const styles = StyleSheet.create({
   },
   card: {
     gap: space.md,
+  },
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    padding: space.lg,
+  },
+  linkEmoji: {
+    width: 44,
+    height: 44,
+    borderRadius: 18,
+    backgroundColor: palette.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  linkEmojiText: {
+    fontSize: 22,
+  },
+  linkText: {
+    flex: 1,
+    gap: 2,
   },
   gradeRow: {
     gap: space.sm,

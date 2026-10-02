@@ -13,12 +13,14 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { StatCard } from '@/components/ui/StatCard';
+import { useAdminGate } from './_layout';
 import { useGradeSettings, useResults, useTodayCount } from '@/data/hooks';
 import { GRADES } from '@/domain/models';
 import { glassSurface, palette, radius, space, type } from '@/theme';
 
 export default function AdminDashboardScreen() {
   const router = useRouter();
+  const { adminName } = useAdminGate();
   const results = useResults();
   const todayCount = useTodayCount();
   const gradeSettings = useGradeSettings();
@@ -39,6 +41,11 @@ export default function AdminDashboardScreen() {
       scroll
     >
       <View style={styles.container}>
+        <Reveal>
+          <Text style={[type.caption, { color: palette.inkSoft }]}>
+            👤 {adminName ?? 'Yönetici'} olarak giriş yapıldı · Hoş geldiniz
+          </Text>
+        </Reveal>
         <Reveal style={styles.statsGrid}>
           <View style={styles.statsRow}>
             <StatCard emoji="👥" value={participants} label="Toplam katılımcı" accent="sky" />
@@ -116,6 +123,12 @@ export default function AdminDashboardScreen() {
             label="Sertifikalar"
             detail="Altın / gümüş / bronz sertifikalar"
             onPress={() => router.push('/admin/certificates')}
+          />
+          <AdminLink
+            emoji="🧑‍💼"
+            label="Yöneticiler"
+            detail="Hesap ekleme, PIN belirleme, silme"
+            onPress={() => router.push('/admin/admins')}
           />
           <AdminLink
             emoji="⚙️"

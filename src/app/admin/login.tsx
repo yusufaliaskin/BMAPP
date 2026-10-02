@@ -13,14 +13,14 @@ import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
 import { useAdminGate } from './_layout';
-import { useConfig } from '@/data/hooks';
-import { verifyPin } from '@/lib/pin';
+import { useAdmins } from '@/data/hooks';
+import { findAdminByPin } from '@/lib/pin';
 import { palette, space, type } from '@/theme';
 
 export default function AdminLoginScreen() {
   const router = useRouter();
   const { unlock } = useAdminGate();
-  const config = useConfig();
+  const admins = useAdmins();
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
@@ -29,9 +29,9 @@ export default function AdminLoginScreen() {
     if (checking) return;
     setChecking(true);
     setError(null);
-    const ok = await verifyPin(pin, config);
-    if (ok) {
-      unlock();
+    const admin = await findAdminByPin(pin, admins);
+    if (admin) {
+      unlock(admin.name);
       router.replace('/admin');
     } else {
       setError('PIN hatalı. Tekrar dene.');
