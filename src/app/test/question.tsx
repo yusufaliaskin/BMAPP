@@ -5,9 +5,9 @@
  * Çıkışta onay istenir; test tamamlanınca sonuç motor tarafından hesaplanıp kaydedilir.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Redirect, useRouter } from 'expo-router';
-import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { BackHandler, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
 import { GlassCard } from '@/components/glass/GlassCard';
@@ -41,6 +41,16 @@ export default function QuestionScreen() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showExit, setShowExit] = useState(false);
+
+  // Android donanım geri tuşu testten kaçırmasın: çıkış onayını göster.
+  useEffect(() => {
+    if (Platform.OS !== 'android') return undefined;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      setShowExit(true);
+      return true;
+    });
+    return () => subscription.remove();
+  }, []);
 
   const question = session?.plan.questions[index];
   const liveScore = session ? gradeTest(answers, session.plan.questions).score : 0;

@@ -102,7 +102,7 @@ export function Screen({
   const keyboardWrap = keyboard ? (
     <KeyboardAvoidingView
       style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       {content}
     </KeyboardAvoidingView>
@@ -113,7 +113,7 @@ export function Screen({
   return (
     <View style={styles.root}>
       <AuroraBackground />
-      <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={styles.flex} edges={['top', 'left', 'right', 'bottom']}>
         {keyboardWrap}
       </SafeAreaView>
     </View>

@@ -5,9 +5,9 @@
  * sıradaki çocuk için karşılama ekranı açılır.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { BackHandler, Platform, StyleSheet, Text, View } from 'react-native';
 
 import { GlassCard } from '@/components/glass/GlassCard';
 import { Button } from '@/components/ui/Button';
@@ -52,6 +52,17 @@ export default function ResultScreen() {
     clearTestSession();
     router.replace('/onboarding/welcome');
   };
+
+  // Android donanım geri tuşu sonuç ekranından kiosk başına döner (sonuç kayıtlı).
+  useEffect(() => {
+    if (Platform.OS !== 'android') return undefined;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      clearTestSession();
+      router.replace('/onboarding/welcome');
+      return true;
+    });
+    return () => subscription.remove();
+  }, [router]);
 
   if (!result) {
     return (
