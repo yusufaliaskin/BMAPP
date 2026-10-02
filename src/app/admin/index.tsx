@@ -33,7 +33,11 @@ export default function AdminDashboardScreen() {
   );
 
   return (
-    <Screen title="Yönetim Paneli" onBack={() => router.back()} scroll>
+    <Screen
+      title="Yönetim Paneli"
+      onBack={() => router.replace('/onboarding/welcome')}
+      scroll
+    >
       <View style={styles.container}>
         <Reveal style={styles.statsGrid}>
           <View style={styles.statsRow}>

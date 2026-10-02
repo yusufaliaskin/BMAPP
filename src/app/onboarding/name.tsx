@@ -1,6 +1,8 @@
 /**
- * Katılımcı adı — tek soru: "Adın ne?" (brief §6, kiosk akışı).
- * Uzun kayıt yok: yalnız görünen ad/lakap alınır; benzersiz katılımcı kodunu sistem üretir.
+ * Katılımcı adı — kiosk girişinin tek alanı (§6).
+ * Çocuk için: herhangi bir ad/lakap → sınıf seçimi → test.
+ * Görevli için gizli kapı: "admin" yazılınca PIN ekranı → yönetim paneli.
+ * Benzersiz katılımcı kodunu sistem üretir.
  */
 
 import { useState } from 'react';
@@ -15,6 +17,9 @@ import { palette, space, type } from '@/theme';
 
 const NAME_PATTERN = /^[A-Za-zÇĞİÖŞÜçğıöşü0-9' -]{2,20}$/;
 
+/** Gizli yönetici anahtarı — büyük/küçük harf duyarsız. */
+const ADMIN_KEYWORD = 'admin';
+
 export default function NameScreen() {
   const router = useRouter();
   const [name, setName] = useState('');
@@ -24,6 +29,11 @@ export default function NameScreen() {
   const valid = NAME_PATTERN.test(trimmed);
 
   const goNext = () => {
+    if (trimmed.toLowerCase() === ADMIN_KEYWORD) {
+      setName('');
+      router.push('/admin/login');
+      return;
+    }
     if (!valid) {
       setError('Lütfen adını yaz (2-20 karakter).');
       return;
