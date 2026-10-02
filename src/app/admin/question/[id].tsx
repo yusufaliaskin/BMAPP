@@ -21,6 +21,7 @@ import { TextField } from '@/components/ui/TextField';
 import { upsertQuestion } from '@/data/actions';
 import { useQuestions, useTopics } from '@/data/hooks';
 import type { Difficulty, Grade, Question } from '@/domain/models';
+import { emojiCount, isSingleEmoji } from '@/lib/emoji';
 import { palette, radius, space, type } from '@/theme';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
@@ -58,7 +59,7 @@ export default function AdminQuestionEditScreen() {
     grade: existing?.grade ?? 1,
     topicId: existing?.topicId ?? topics[0]?.id ?? 'ekran',
     difficulty: existing?.difficulty ?? 'easy',
-    visual: existing?.visual ?? '🧠❓',
+    visual: existing?.visual ?? '🧠',
     text: existing?.text ?? '',
     options: existing?.options ?? ['', ''],
     correctIndex: existing?.correctIndex ?? 0,
@@ -99,9 +100,17 @@ export default function AdminQuestionEditScreen() {
   const validate = (): boolean => {
     const next: Record<string, string> = {};
     if (draft.text.trim().length < 5) next.text = 'Soru metni en az 5 karakter olmalı.';
-    if (draft.visual.trim().length === 0) next.visual = 'Bir görsel emoji gir.';
+    const visual = draft.visual.trim();
+    if (visual.length === 0) next.visual = 'Bir görsel emoji gir.';
+    else if (!isSingleEmoji(visual)) {
+      next.visual = 'Görsel tam olarak TEK bir emoji olmalı — yan yana iki emoji cevabı ele verir.';
+    }
     const filled = draft.options.map((o) => o.trim());
     if (filled.filter((o) => o.length > 0).length < 2) next.options = 'En az 2 seçenek doldur.';
+    const crowded = filled.findIndex((option) => emojiCount(option) > 1);
+    if (crowded >= 0 && !next.options) {
+      next.options = `${LETTERS[crowded]} seçeneğinde ${emojiCount(filled[crowded])} emoji var — en fazla 1 kullan.`;
+    }
     if (!filled[draft.correctIndex] || filled[draft.correctIndex].length === 0) {
       next.correct = 'Doğru cevap dolu bir seçenek olmalı.';
     }
@@ -166,13 +175,13 @@ export default function AdminQuestionEditScreen() {
         <Reveal delay={60}>
           <GlassCard style={styles.card}>
             <TextField
-              label="Görsel (emoji)"
+              label="Görsel (tek emoji)"
               value={draft.visual}
               onChangeText={(value) => setDraft((current) => ({ ...current, visual: value }))}
-              placeholder="Örn: 📱⏰"
+              placeholder="Örn: 📱"
               maxLength={12}
               error={errors.visual}
-              hint="Soruyla birlikte gösterilecek büyük görsel."
+              hint="Sahneyi gösteren tek bir emoji seç; ✅ ❌ 🚫 gibi yargı emojileri kopya olur."
             />
             <TextField
               label="Soru metni"

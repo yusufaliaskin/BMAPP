@@ -227,11 +227,13 @@ export function updateGradeSetting(
 export function upsertQuestion(question: Question): void {
   updateData((data) => {
     const exists = data.questions.some((q) => q.id === question.id);
+    // Elle kaydedilen soru artık admin'e aittir: tohum senkronizasyonu üstüne yazmaz.
+    const owned: Question = { ...question, edited: true };
     return {
       ...data,
       questions: exists
-        ? data.questions.map((q) => (q.id === question.id ? question : q))
-        : [...data.questions, question],
+        ? data.questions.map((q) => (q.id === question.id ? owned : q))
+        : [...data.questions, owned],
     };
   });
 }

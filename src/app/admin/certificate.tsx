@@ -95,6 +95,10 @@ export default function AdminCertificatePreviewScreen() {
       <View style={styles.container}>
         <Reveal>
           <CertificateView certificate={certificate} config={config} />
+          <Text style={[type.caption, styles.note, { color: palette.inkFaint }]}>
+            Önizleme ekran genişliğine göre küçültüldü. PDF, A4 yatay sayfada baskı
+            boyutunda üretilir.
+          </Text>
         </Reveal>
         <Reveal delay={100} style={styles.actions}>
           {error ? (
@@ -156,6 +160,11 @@ const styles = StyleSheet.create({
   },
   center: {
     textAlign: 'center',
+  },
+  note: {
+    textAlign: 'center',
+    marginTop: space.md,
+    color: palette.inkFaint,
   },
   infoText: {
     padding: space.md,

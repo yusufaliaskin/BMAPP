@@ -18,8 +18,9 @@ import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Stepper } from '@/components/ui/Stepper';
 import { TextField } from '@/components/ui/TextField';
 import { clearParticipantData, updateConfig, updateGradeSetting } from '@/data/actions';
-import { useConfig, useGradeSettings, useResults } from '@/data/hooks';
+import { useCertificates, useConfig, useDB, useGradeSettings, useQuestions, useResults } from '@/data/hooks';
 import type { Difficulty, Grade } from '@/domain/models';
+import { buildBackupJson, buildParticipantsCsv, exportTextFile } from '@/lib/export-data';
 import { palette, space, surface, type } from '@/theme';
 
 const DIFFICULTY_OPTIONS: { value: Difficulty; label: string }[] = [
@@ -47,6 +48,48 @@ export default function AdminSettingsScreen() {
 
   const [confirmClear, setConfirmClear] = useState(false);
   const [cleared, setCleared] = useState(false);
+
+  const db = useDB();
+  const certificates = useCertificates();
+  const questions = useQuestions();
+  const [exportKind, setExportKind] = useState<'csv' | 'json' | null>(null);
+  const [exportReport, setExportReport] = useState<string | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  const runExport = async (kind: 'csv' | 'json') => {
+    if (exportKind) return;
+    setExportKind(kind);
+    setExportReport(null);
+    setExportError(null);
+    try {
+      const stamp = new Date().toISOString().slice(0, 10);
+      const outcome =
+        kind === 'csv'
+          ? await exportTextFile(
+              `bilincli-kahraman-katilimci-${stamp}.csv`,
+              'text/csv',
+              buildParticipantsCsv(db.data),
+            )
+          : await exportTextFile(
+              `bilincli-kahraman-yedek-${stamp}.json`,
+              'application/json',
+              buildBackupJson(db),
+            );
+      const rows = kind === 'csv' ? `${db.data.results.length} katılımcı satırı` : 'tam belge';
+      const where =
+        outcome.via === 'share'
+          ? 'Paylaşım menüsü açıldı — “Dosyalara kaydet”i seç.'
+          : outcome.via === 'download'
+            ? 'Tarayıcı dosyayı indirdi.'
+            : 'Cihazın önbelleğine yazıldı; paylaşım menüsü kullanılamıyor.';
+      setExportReport(`${outcome.fileName} hazır (${rows}, ${outcome.characters} karakter). ${where}`);
+    } catch (error) {
+      console.warn('Veri dışa aktarılamadı.', error);
+      setExportError('Dışa aktarma başarısız oldu. Lütfen tekrar dene.');
+    } finally {
+      setExportKind(null);
+    }
+  };
 
   const saveCertForm = () => {
     updateConfig(certForm);
@@ -165,6 +208,48 @@ export default function AdminSettingsScreen() {
         </Reveal>
 
         <Reveal delay={150}>
+          <GlassCard style={styles.card}>
+            <Text style={[type.h3, { color: palette.ink }]}>💾 Yedekleme ve Dışa Aktarma</Text>
+            <Text style={[type.caption, { color: palette.inkSoft }]}>
+              Kayıtlar yalnızca bu cihazda tutulur. Cihaz değişir veya uygulama silinirse
+              veriler de gider — düzenli aralıklarla dışa aktar. Yedekte yönetici PIN’leri
+              bulunmaz.
+            </Text>
+            <View style={styles.exportMeta}>
+              <Text style={[type.caption, { color: palette.inkFaint }]}>
+                {results.length} katılımcı · {certificates.length} sertifika ·{' '}
+                {questions.length} soru
+              </Text>
+            </View>
+            {exportReport ? (
+              <Text accessibilityLiveRegion="polite" style={[type.caption, { color: palette.success }]}>
+                {exportReport}
+              </Text>
+            ) : null}
+            {exportError ? (
+              <Text accessibilityLiveRegion="polite" style={[type.caption, { color: palette.coral }]}>
+                {exportError}
+              </Text>
+            ) : null}
+            <Button
+              label="KATILIMCI LİSTESİ (CSV)"
+              onPress={() => void runExport('csv')}
+              loading={exportKind === 'csv'}
+              disabled={exportKind !== null}
+              accessibilityHint="Tüm katılımcı ve sertifika kayıtlarını tablo dosyası olarak indirir"
+            />
+            <Button
+              label="TÜM VERİ YEDEĞİ (JSON)"
+              variant="glass"
+              onPress={() => void runExport('json')}
+              loading={exportKind === 'json'}
+              disabled={exportKind !== null}
+              accessibilityHint="Sorular, sınıflar, sonuçlar ve ayarlar dahil tam yedek dosyası"
+            />
+          </GlassCard>
+        </Reveal>
+
+        <Reveal delay={200}>
           <GlassCard style={styles.dangerCard}>
             <Text style={[type.h3, { color: palette.coral }]}>⚠️ Katılımcı Verilerini Sil</Text>
             <Text style={[type.caption, { color: palette.inkSoft }]}>
@@ -243,6 +328,9 @@ const styles = StyleSheet.create({
   dangerCard: {
     gap: space.md,
     borderColor: palette.coralSoft,
+  },
+  exportMeta: {
+    paddingVertical: space.xs,
   },
   dangerActions: {
     gap: space.sm,

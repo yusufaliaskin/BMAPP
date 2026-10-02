@@ -17,26 +17,62 @@ import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { StatCard } from '@/components/ui/StatCard';
 import { useAdminGate } from './_layout';
-import { useGradeSettings, useResults, useTodayCount } from '@/data/hooks';
-import { GRADES } from '@/domain/models';
-import { glassSurface, palette, radius, space, type } from '@/theme';
+import { useResults, useTodayCount } from '@/data/hooks';
+import { GRADES, type Grade } from '@/domain/models';
+import {
+  fonts,
+  glassSurface,
+  palette,
+  radius,
+  space,
+  topicAccents,
+  type,
+  type TopicAccent,
+} from '@/theme';
+
+/** Seviye başına renk tonu ve çubak gradiyeti — 2×2 ızgarada simetriyi taşır. */
+const GRADE_TONES: { accent: TopicAccent; bar: 'primary' | 'reward' | 'success' }[] = [
+  { accent: 'sky', bar: 'primary' },
+  { accent: 'mint', bar: 'success' },
+  { accent: 'lavender', bar: 'primary' },
+  { accent: 'amber', bar: 'reward' },
+];
+
+interface GradeAttendance {
+  grade: Grade;
+  accent: TopicAccent;
+  bar: 'primary' | 'reward' | 'success';
+  count: number;
+  average: number;
+  share: number;
+}
 
 export default function AdminDashboardScreen() {
   const router = useRouter();
   const { adminName } = useAdminGate();
   const results = useResults();
   const todayCount = useTodayCount();
-  const gradeSettings = useGradeSettings();
   const [showExit, setShowExit] = useState(false);
 
   const participants = results.length;
   const totalScore = results.reduce((sum, result) => sum + result.score, 0);
   const averageScore = participants > 0 ? Math.round(totalScore / participants) : 0;
   const topScore = results.reduce((max, result) => Math.max(max, result.score), 0);
-  const maxGradeCount = Math.max(
-    1,
-    ...GRADES.map((grade) => results.filter((result) => result.grade === grade).length),
-  );
+
+  const attendance: GradeAttendance[] = GRADES.map((grade, index) => {
+    const rows = results.filter((result) => result.grade === grade);
+    const count = rows.length;
+    return {
+      grade,
+      accent: GRADE_TONES[index].accent,
+      bar: GRADE_TONES[index].bar,
+      count,
+      average:
+        count > 0 ? Math.round(rows.reduce((sum, row) => sum + row.score, 0) / count) : 0,
+      share: participants > 0 ? Math.round((count / participants) * 100) : 0,
+    };
+  });
+  const maxGradeCount = Math.max(1, ...attendance.map((row) => row.count));
 
   return (
     <Screen title="Yönetim Paneli" onBack={() => setShowExit(true)} scroll>
@@ -59,39 +95,26 @@ export default function AdminDashboardScreen() {
         </Reveal>
 
         <Reveal delay={80}>
-          <GlassCard style={styles.gradeCard}>
-            <Text style={[type.h3, { color: palette.ink }]}>🏫 Sınıf Seviyesi Katılımı</Text>
-            {GRADES.map((grade) => {
-              const gradeResults = results.filter((result) => result.grade === grade);
-              const settings = gradeSettings.find((g) => g.grade === grade);
-              const gradeAvg =
-                gradeResults.length > 0
-                  ? Math.round(
-                      gradeResults.reduce((sum, result) => sum + result.score, 0) /
-                        gradeResults.length,
-                    )
-                  : 0;
-              return (
-                <View key={grade} style={styles.gradeRow}>
-                  <View style={styles.gradeTop}>
-                    <View style={styles.gradeBadge}>
-                      <Text style={[type.h3, { color: palette.primary }]}>{grade}</Text>
-                    </View>
-                    <View style={styles.gradeInfo}>
-                      <Text style={[type.bodyBold, { color: palette.ink }]}>
-                        {grade}. Sınıflar
-                      </Text>
-                      <Text style={[type.caption, { color: palette.inkFaint }]}>
-                        {gradeResults.length} katılımcı · ort. {gradeAvg} puan ·{' '}
-                        {settings?.questionCount ?? '—'} soru
-                      </Text>
-                    </View>
-                  </View>
-                  <ProgressBar progress={gradeResults.length / maxGradeCount} height={10} />
-                </View>
-              );
-            })}
-          </GlassCard>
+          <View style={styles.section}>
+            <View style={styles.sectionHead}>
+              <Text style={[type.h3, { color: palette.ink }]}>🏫 Sınıf Seviyesi Katılımı</Text>
+              <Text style={[type.caption, { color: palette.inkFaint }]}>
+                Karta dokun → o seviyenin katılımcıları
+              </Text>
+            </View>
+            <View style={styles.gradeGrid}>
+              {attendance.map((row) => (
+                <GradeAttendanceCard
+                  key={row.grade}
+                  row={row}
+                  ratio={row.count / maxGradeCount}
+                  onPress={() =>
+                    router.push({ pathname: '/admin/participants', params: { grade: String(row.grade) } })
+                  }
+                />
+              ))}
+            </View>
+          </View>
         </Reveal>
 
         <Reveal delay={140} style={styles.links}>
@@ -159,6 +182,58 @@ export default function AdminDashboardScreen() {
   );
 }
 
+/** 2×2 seviye kartı: katılım sayısı, ortalama puan, seviye payı ve soru yükü. */
+function GradeAttendanceCard({
+  row,
+  ratio,
+  onPress,
+}: {
+  row: GradeAttendance;
+  ratio: number;
+  onPress: () => void;
+}) {
+  const tone = topicAccents[row.accent];
+  return (
+    <PressableScale
+      accessibilityRole="button"
+      accessibilityLabel={`${row.grade}. sınıf: ${row.count} katılımcı, ortalama ${row.average} puan`}
+      accessibilityHint="Bu seviyenin katılımcı listesini açar"
+      haptic="light"
+      onPress={onPress}
+      style={styles.gradeGridItem}
+    >
+      <GlassCard padded={false} outline={tone.soft}>
+        <View style={styles.gradeBody}>
+          <View style={styles.gradeHead}>
+            <View style={[styles.gradeBadge, { backgroundColor: tone.soft }]}>
+              <Text style={[styles.gradeBadgeText, { color: tone.main }]} maxFontSizeMultiplier={1.1}>
+                {row.grade}
+              </Text>
+            </View>
+            <Text style={[type.label, styles.gradeHeadTitle, { color: palette.ink }]}>
+              {row.grade}. Sınıf
+            </Text>
+            <Text style={[type.label, { color: tone.main }]}>{`%${row.share}`}</Text>
+          </View>
+
+          <View style={styles.gradeCountRow}>
+            <Text style={[type.score, { color: palette.ink }]} maxFontSizeMultiplier={1.1}>
+              {row.count}
+            </Text>
+            <Text style={[type.caption, { color: palette.inkSoft }]}>katılımcı</Text>
+          </View>
+
+          <ProgressBar progress={ratio} height={8} color={row.bar} />
+
+          <Text style={[type.caption, { color: palette.inkFaint }]} numberOfLines={1}>
+            {row.count > 0 ? `ort. ${row.average} puan` : 'katılım yok'}
+          </Text>
+        </View>
+      </GlassCard>
+    </PressableScale>
+  );
+}
+
 interface AdminLinkProps {
   emoji: string;
   label: string;
@@ -203,28 +278,51 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: space.md,
   },
-  gradeCard: {
-    gap: space.xl,
+  section: {
+    gap: space.lg,
   },
-  gradeRow: {
+  sectionHead: {
+    gap: space.xs,
+  },
+  gradeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: space.md,
   },
-  gradeTop: {
+  gradeGridItem: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '46%',
+    minWidth: 0,
+  },
+  gradeBody: {
+    padding: space.md,
+    gap: space.md,
+  },
+  gradeHead: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space.md,
+    gap: space.sm,
   },
   gradeBadge: {
-    width: 44,
-    height: 44,
+    width: 28,
+    height: 28,
     borderRadius: radius.pill,
-    backgroundColor: palette.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  gradeInfo: {
+  gradeBadgeText: {
+    fontFamily: fonts.display,
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  gradeCountRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: space.xs,
+  },
+  gradeHeadTitle: {
     flex: 1,
-    gap: 2,
   },
   links: {
     gap: space.lg,

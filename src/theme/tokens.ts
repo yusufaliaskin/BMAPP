@@ -126,6 +126,27 @@ export const fonts = {
   bodySemi: 'Nunito_600SemiBold',
   bodyBold: 'Nunito_700Bold',
   bodyBlack: 'Nunito_800ExtraBold',
+  /** Sertifikanın klasik serif başlığı. */
+  serif: 'PlayfairDisplay_700Bold',
+  serifText: 'PlayfairDisplay_400Regular',
+  /** Belge sahibinin adı: el yazısı. */
+  script: 'DancingScript_700Bold',
+} as const;
+
+/**
+ * Sertifika paleti — klasik belge dili: fildişi zemin, lacivert yazı,
+ * çift altın çerçeve ve kızıl balmumu mühür.
+ */
+export const certificate = {
+  paper: '#FBF4E4',
+  paperEdge: '#F4E8CE',
+  ink: '#17233F',
+  inkSoft: '#3C4A68',
+  gold: '#C9A227',
+  goldDeep: '#9C7A16',
+  goldSoft: '#E7CE7A',
+  seal: '#A32020',
+  sealDeep: '#7A1616',
 } as const;
 
 export const type = {

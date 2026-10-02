@@ -9,7 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { AdminUser, DBState } from '../domain/models';
 import { GRADES, SECTION_LETTERS } from '../domain/models';
-import { applyConfigTitleMigration, applyQuestionContentFixes } from '../domain/content/seed';
+import { applyConfigTitleMigration, syncSeedQuestions } from '../domain/content/seed';
 
 export const STORAGE_KEY = 'bilincli-kahraman/store/v2';
 export const SCHEMA_VERSION = 2;
@@ -72,9 +72,17 @@ export async function loadState(): Promise<LoadResult | null> {
     if (!parsed.data) return null;
     const migratedAdmins = migrateAdmins(parsed);
     const migratedClasses = migrateClasses(parsed);
-    const migratedContent = applyQuestionContentFixes(parsed.data.questions ?? []);
+    const contentSync = syncSeedQuestions(
+      parsed.data.questions ?? [],
+      parsed.data.results ?? [],
+    );
     const migratedTitles = applyConfigTitleMigration(parsed.data.config);
-    const migrated = migratedAdmins || migratedClasses || migratedContent || migratedTitles;
+    const migrated =
+      migratedAdmins ||
+      migratedClasses ||
+      contentSync.syncedQuestions > 0 ||
+      contentSync.remappedAnswers > 0 ||
+      migratedTitles;
     if (!Array.isArray(parsed.data.admins) || parsed.data.admins.length === 0) return null;
     return { state: parsed, migrated };
   } catch (error) {

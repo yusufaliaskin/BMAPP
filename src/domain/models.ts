@@ -34,7 +34,7 @@ export interface Question {
   grade: Grade;
   topicId: string;
   difficulty: Difficulty;
-  /** Büyük görsel: emoji kompozisyonu (§10, §39). */
+  /** Büyük görsel: TEK emoji (§10, §39 — cevabı ele vermez, sahneyi anlatır). */
   visual: string;
   text: string;
   options: string[];
@@ -43,6 +43,8 @@ export interface Question {
   /** Kısa "neden" cümlesi — doğru ve yanlış geri bildirimde kullanılır (§12, §13). */
   fact: string;
   isActive: boolean;
+  /** Admin bu soruyu elle düzenlediyse true; tohum içeriği bir daha üzerine yazmaz. */
+  edited?: boolean;
 }
 
 export interface TestAnswer {
