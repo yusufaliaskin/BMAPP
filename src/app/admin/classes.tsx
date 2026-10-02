@@ -1,11 +1,11 @@
 /**
- * Admin — Sınıflar (§23, kiosk uyarlaması): her seviyenin şubeleri; katılımcı sayısı,
- * ortalama ve en yüksek puan. Şubeye tıklanınca filtrelenmiş katılımcı listesi açılır.
+ * Admin — Sınıflar (§23, kiosk uyarlaması): her seviyenin şubeleri A'dan Z'ye kompakt
+ * ızgarada. Kutu üzerindeki sayı, o şubeden test çözen katılımcı sayısıdır;
+ * dokununca o şubenin filtrelenmiş katılımcı listesi açılır.
  */
 
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 import { GlassCard } from '@/components/glass/GlassCard';
 import { PressableScale } from '@/components/ui/PressableScale';
@@ -13,7 +13,7 @@ import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { useClasses, useResults } from '@/data/hooks';
 import { GRADES } from '@/domain/models';
-import { glassSurface, palette, radius, space, type } from '@/theme';
+import { palette, radius, space, type } from '@/theme';
 
 export default function AdminClassesScreen() {
   const router = useRouter();
@@ -23,54 +23,61 @@ export default function AdminClassesScreen() {
   return (
     <Screen title="Sınıflar" onBack={() => router.back()} scroll>
       <View style={styles.container}>
+        <Text style={[type.caption, { color: palette.inkFaint }]}>
+          Kutudaki sayı = o şubeden test çözen katılımcı sayısı.
+        </Text>
         {GRADES.map((grade, gradeIndex) => {
-          const gradeClasses = classes.filter((c) => c.grade === grade);
+          const gradeClasses = classes
+            .filter((c) => c.grade === grade && c.isActive)
+            .sort((a, b) => a.section.localeCompare(b.section));
+          const gradeCount = results.filter((result) => result.grade === grade).length;
           return (
             <Reveal key={grade} delay={gradeIndex * 60}>
               <GlassCard style={styles.gradeCard}>
-                <Text style={[type.h3, { color: palette.ink }]}>🏫 {grade}. Sınıflar</Text>
-                {gradeClasses.map((item) => {
-                  const sectionResults = results.filter((result) => result.classId === item.id);
-                  const average =
-                    sectionResults.length > 0
-                      ? Math.round(
-                          sectionResults.reduce((sum, result) => sum + result.score, 0) /
-                            sectionResults.length,
-                        )
-                      : 0;
-                  const top = sectionResults.reduce(
-                    (max, result) => Math.max(max, result.score),
-                    0,
-                  );
-                  return (
-                    <PressableScale
-                      key={item.id}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${grade}/${item.section} şubesi`}
-                      haptic="light"
-                      onPress={() =>
-                        router.push(`/admin/participants?grade=${grade}&section=${item.section}`)
-                      }
-                    >
-                      <View style={[styles.sectionRow, glassSurface('subtle')]}>
-                        <View style={styles.sectionBadge}>
-                          <Text style={[type.h3, { color: palette.primary }]}>
-                            {item.grade}/{item.section}
-                          </Text>
-                        </View>
-                        <View style={styles.sectionStats}>
-                          <Text style={[type.caption, { color: palette.inkSoft }]}>
-                            👥 {sectionResults.length} katılımcı
-                          </Text>
-                          <Text style={[type.caption, { color: palette.inkFaint }]}>
-                            ⭐ ort. {average} · en yüksek {top}
-                          </Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={18} color={palette.inkFaint} />
-                      </View>
-                    </PressableScale>
-                  );
-                })}
+                <View style={styles.headRow}>
+                  <Text style={[type.h3, { color: palette.ink }]}>🏫 {grade}. Sınıflar</Text>
+                  <Text style={[type.caption, { color: palette.inkSoft }]}>
+                    {gradeCount} katılımcı
+                  </Text>
+                </View>
+                <View style={styles.grid}>
+                  {gradeClasses.map((item) => {
+                    const count = results.filter((result) => result.classId === item.id).length;
+                    return (
+                      <PressableScale
+                        key={item.id}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${grade}/${item.section} şubesi, ${count} katılımcı`}
+                        haptic="light"
+                        onPress={() =>
+                          router.push(`/admin/participants?grade=${grade}&section=${item.section}`)
+                        }
+                        style={styles.cell}
+                      >
+                        <GlassCard padded={false} style={styles.cellCard}>
+                          <View style={styles.cellInner}>
+                            <Text
+                              style={[
+                                type.h3,
+                                { color: count > 0 ? palette.ink : palette.inkFaint },
+                              ]}
+                            >
+                              {item.section}
+                            </Text>
+                            <Text
+                              style={[
+                                type.caption,
+                                { color: count > 0 ? palette.primary : palette.inkFaint },
+                              ]}
+                            >
+                              {count}
+                            </Text>
+                          </View>
+                        </GlassCard>
+                      </PressableScale>
+                    );
+                  })}
+                </View>
               </GlassCard>
             </Reveal>
           );
@@ -87,24 +94,27 @@ const styles = StyleSheet.create({
   gradeCard: {
     gap: space.md,
   },
-  sectionRow: {
+  headRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space.md,
-    borderRadius: radius.lg,
-    padding: space.md,
+    justifyContent: 'space-between',
   },
-  sectionBadge: {
-    minWidth: 64,
-    height: 44,
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: space.sm,
+  },
+  cell: {
+    flexGrow: 1,
+    flexBasis: '15%',
+    minWidth: 52,
+  },
+  cellCard: {
     borderRadius: radius.md,
-    backgroundColor: palette.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: space.sm,
   },
-  sectionStats: {
-    flex: 1,
+  cellInner: {
+    alignItems: 'center',
+    paddingVertical: space.sm,
     gap: 2,
   },
 });

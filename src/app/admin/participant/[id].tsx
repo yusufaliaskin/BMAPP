@@ -289,6 +289,7 @@ const styles = StyleSheet.create({
   },
   chipsWrap: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: space.sm,
   },
   dangerCard: {

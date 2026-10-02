@@ -148,6 +148,9 @@ export interface DBState {
 
 export const GRADES: readonly Grade[] = [1, 2, 3, 4] as const;
 
+/** Şube harfleri — A'dan Z'ye (26 şube desteklenir). */
+export const SECTION_LETTERS: readonly string[] = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'];
+
 export function gradeLabel(grade: Grade): string {
   return `${grade}. Sınıflar`;
 }

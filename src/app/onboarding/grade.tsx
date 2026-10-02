@@ -1,7 +1,7 @@
 /**
- * Sınıf/şube seçimi — büyük kartlar (§6, kiosk akışı).
+ * Sınıf/şube seçimi — büyük harf kartları (§6, kiosk akışı).
+ * Şubeler A'dan Z'ye uzanır; seçim ızgarası kaydırılabilir, DEVAM butonu sabittir.
  * Karakter adımı yoktur: sıradaki çocuk için akış kısa tutulur.
- * Seçim sonrası test hazırlık ekranına geçilir; kayıt ancak test bitince oluşur.
  */
 
 import { useState } from 'react';
@@ -47,7 +47,21 @@ export default function GradeScreen() {
   };
 
   return (
-    <Screen title="" onBack={() => router.back()}>
+    <Screen
+      title=""
+      onBack={() => router.back()}
+      scroll
+      footer={
+        <Reveal delay={120}>
+          <Button
+            label="DEVAM ET →"
+            onPress={goNext}
+            disabled={grade === null || !section}
+            accessibilityHint="Test hazırlık ekranına geçer"
+          />
+        </Reveal>
+      }
+    >
       <View style={styles.body}>
         <Reveal style={styles.header}>
           <Text style={[type.h1, styles.center, { color: palette.ink }]}>Hangi sınıftasın? 🏫</Text>
@@ -65,8 +79,13 @@ export default function GradeScreen() {
         </Reveal>
         {grade !== null ? (
           <Reveal delay={130} style={styles.sectionArea}>
-            <Text style={[type.label, { color: palette.inkSoft }]}>Şubeni seç</Text>
-            <View style={styles.sections}>
+            <View style={styles.sectionHead}>
+              <Text style={[type.label, { color: palette.inkSoft }]}>Şubeni seç</Text>
+              <Text style={[type.caption, { color: palette.inkFaint }]}>
+                Harfine dokun 👇
+              </Text>
+            </View>
+            <View style={styles.grid}>
               {classes.map((item) => {
                 const isSelected = section === item.section;
                 return (
@@ -77,14 +96,14 @@ export default function GradeScreen() {
                     accessibilityState={{ selected: isSelected }}
                     haptic="selection"
                     onPress={() => setSection(item.section)}
-                    style={styles.sectionWrap}
+                    style={styles.cell}
                   >
                     <GlassCard
                       padded={false}
-                      style={[styles.sectionCard, isSelected ? styles.sectionSelected : null]}
+                      style={[styles.cellCard, isSelected ? styles.cellSelected : null]}
                     >
-                      <View style={styles.sectionInner}>
-                        <Text style={[type.display, { color: palette.ink }]}>{item.section}</Text>
+                      <View style={styles.cellInner}>
+                        <Text style={[type.h2, { color: palette.ink }]}>{item.section}</Text>
                         <Text style={[type.caption, { color: palette.inkFaint }]}>
                           {item.grade}/{item.section}
                         </Text>
@@ -103,23 +122,15 @@ export default function GradeScreen() {
           </Reveal>
         )}
       </View>
-      <Reveal delay={190}>
-        <Button
-          label="DEVAM ET →"
-          onPress={goNext}
-          disabled={grade === null || !section}
-          accessibilityHint="Test hazırlık ekranına geçer"
-        />
-      </Reveal>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   body: {
-    flex: 1,
     gap: space.xl,
     marginTop: space.sm,
+    paddingBottom: space.md,
   },
   header: {
     marginBottom: space.xs,
@@ -130,22 +141,31 @@ const styles = StyleSheet.create({
   sectionArea: {
     gap: space.md,
   },
-  sections: {
+  sectionHead: {
     flexDirection: 'row',
-    gap: space.md,
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  sectionWrap: {
-    flex: 1,
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: space.sm,
   },
-  sectionCard: {
+  cell: {
+    flexGrow: 1,
+    flexBasis: '21%',
+    minWidth: 62,
+  },
+  cellCard: {
     borderRadius: radius.lg,
   },
-  sectionSelected: {
+  cellSelected: {
     borderColor: palette.primary,
+    backgroundColor: palette.primarySoft,
   },
-  sectionInner: {
+  cellInner: {
     alignItems: 'center',
-    paddingVertical: space.lg,
-    gap: space.xs,
+    paddingVertical: space.md,
+    gap: 2,
   },
 });

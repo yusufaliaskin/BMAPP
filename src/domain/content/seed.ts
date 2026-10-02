@@ -14,6 +14,7 @@ import type {
   TitleRule,
   Topic,
 } from '../models';
+import { GRADES, SECTION_LETTERS } from '../models';
 
 export const seedTopics: Topic[] = [
   {
@@ -63,10 +64,9 @@ export const seedTopics: Topic[] = [
   },
 ];
 
-const SECTIONS = ['A', 'B', 'C'] as const;
-
-export const seedClasses: SchoolClass[] = ([1, 2, 3, 4] as const).flatMap((grade) =>
-  SECTIONS.map((section) => ({
+/** Tüm sınıf seviyeleri için şubeler A'dan Z'ye oluşturulur (bkz. SECTION_LETTERS). */
+export const seedClasses: SchoolClass[] = GRADES.flatMap((grade) =>
+  SECTION_LETTERS.map((section) => ({
     id: `${grade}${section}`,
     grade,
     section,
