@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
 import { GlassCard } from '@/components/glass/GlassCard';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
@@ -36,6 +37,7 @@ export default function AdminLoginScreen() {
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  const [showExit, setShowExit] = useState(false);
   const shake = useSharedValue(0);
 
   const submit = async (candidate: string) => {
@@ -84,7 +86,7 @@ export default function AdminLoginScreen() {
   }));
 
   return (
-    <Screen title="Yönetici Girişi" onBack={() => router.back()}>
+    <Screen title="Yönetici Girişi" onBack={() => setShowExit(true)}>
       <View style={styles.body}>
         <Reveal style={styles.hero}>
           <View style={styles.logoWrap}>
@@ -160,6 +162,15 @@ export default function AdminLoginScreen() {
           </GlassCard>
         </Reveal>
       </View>
+      <ConfirmDialog
+        visible={showExit}
+        title="Çıkmak istiyor musunuz?"
+        message="Girişten çıkıp kiosk ekranına dönersiniz."
+        cancelLabel="KAL"
+        confirmLabel="ÇIK"
+        onCancel={() => setShowExit(false)}
+        onConfirm={() => router.back()}
+      />
     </Screen>
   );
 }

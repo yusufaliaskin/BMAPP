@@ -1,6 +1,10 @@
 /**
- * Admin — Test Analizi (§25, kiosk uyarlaması): gerçek sonuçlardan istatistikler.
- * Her sonuç benzersiz bir katılımcıya aittir; ortalamalar doğrudan sonuç kayıtlarından gelir.
+ * Admin — Test Analizi (sıfırdan tasarım): ferah, katmanlı düzen.
+ * 1) Genel Özet — satır satır büyük değerler
+ * 2) Sınıf Bazlı Başarı — çubuklu
+ * 3) Konu Bazlı Başarı — çubuklu
+ * 4) Öne Çıkan Sorular — en çok yanlış / en çok doğru
+ * Her blok arasında geniş boşluk; iç öğeler sıkıştırılmaz.
  */
 
 import { useMemo } from 'react';
@@ -11,16 +15,37 @@ import { GlassCard } from '@/components/glass/GlassCard';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
-import { StatCard } from '@/components/ui/StatCard';
 import { EmptyState } from '@/components/ui/states';
 import { useQuestions, useResults, useTopics } from '@/data/hooks';
 import { GRADES } from '@/domain/models';
-import { palette, space, type } from '@/theme';
+import { palette, radius, space, type } from '@/theme';
 
 interface QuestionStat {
   questionId: string;
   correct: number;
   wrong: number;
+}
+
+interface SummaryRowProps {
+  emoji: string;
+  label: string;
+  value: string | number;
+}
+
+function SummaryRow({ emoji, label, value }: SummaryRowProps) {
+  return (
+    <View style={styles.summaryRow}>
+      <View style={styles.summaryEmoji}>
+        <Text style={styles.summaryEmojiText} maxFontSizeMultiplier={1.1}>
+          {emoji}
+        </Text>
+      </View>
+      <Text style={[type.bodySemi, styles.summaryLabel, { color: palette.inkSoft }]}>
+        {label}
+      </Text>
+      <Text style={[type.h2, { color: palette.ink }]}>{value}</Text>
+    </View>
+  );
 }
 
 export default function AdminAnalyticsScreen() {
@@ -126,25 +151,73 @@ export default function AdminAnalyticsScreen() {
           />
         ) : (
           <>
-            <Reveal style={styles.grid}>
-              <View style={styles.row}>
-                <StatCard emoji="👥" value={stats.participants} label="Katılımcı" accent="sky" />
-                <StatCard emoji="⭐" value={stats.avgScore} label="Ortalama puan" accent="amber" />
-              </View>
-              <View style={styles.row}>
-                <StatCard emoji="✅" value={stats.avgCorrect} label="Ort. doğru / test" accent="mint" />
-                <StatCard emoji="❌" value={stats.avgWrong} label="Ort. yanlış / test" accent="coral" />
-              </View>
+            <Reveal>
+              <GlassCard style={styles.sectionCard}>
+                <Text style={[type.h3, { color: palette.ink }]}>📊 Genel Özet</Text>
+                <SummaryRow emoji="👥" label="Katılımcı" value={stats.participants} />
+                <SummaryRow emoji="⭐" label="Ortalama puan" value={stats.avgScore} />
+                <SummaryRow emoji="✅" label="Ort. doğru / test" value={stats.avgCorrect} />
+                <SummaryRow emoji="❌" label="Ort. yanlış / test" value={stats.avgWrong} />
+              </GlassCard>
+            </Reveal>
+
+            <Reveal delay={80}>
+              <GlassCard style={styles.sectionCard}>
+                <Text style={[type.h3, { color: palette.ink }]}>🏫 Sınıf Bazlı Başarı</Text>
+                <View style={styles.bars}>
+                  {stats.perGrade.map((entry) => (
+                    <View key={entry.grade} style={styles.barRow}>
+                      <View style={styles.barLabelRow}>
+                        <Text style={[type.bodyBold, { color: palette.ink }]}>
+                          {entry.grade}. Sınıflar
+                        </Text>
+                        <Text style={[type.caption, { color: palette.inkSoft }]}>
+                          %{entry.percent} · {entry.count} katılımcı
+                        </Text>
+                      </View>
+                      <ProgressBar progress={entry.percent / 100} height={10} color="primary" />
+                    </View>
+                  ))}
+                </View>
+              </GlassCard>
+            </Reveal>
+
+            <Reveal delay={140}>
+              <GlassCard style={styles.sectionCard}>
+                <Text style={[type.h3, { color: palette.ink }]}>📚 Konu Bazlı Başarı</Text>
+                <View style={styles.bars}>
+                  {stats.perTopic.map((entry) => (
+                    <View key={entry.topic.id} style={styles.barRow}>
+                      <View style={styles.barLabelRow}>
+                        <Text style={[type.bodyBold, { color: palette.ink }]}>
+                          {entry.topic.icon} {entry.topic.name}
+                        </Text>
+                        <Text style={[type.caption, { color: palette.inkSoft }]}>
+                          %{entry.percent} · {entry.total} cevap
+                        </Text>
+                      </View>
+                      <ProgressBar progress={entry.percent / 100} height={10} color="success" />
+                    </View>
+                  ))}
+                </View>
+              </GlassCard>
             </Reveal>
 
             {mostWrongQuestion && stats.mostWrong ? (
-              <Reveal delay={80}>
+              <Reveal delay={200}>
                 <GlassCard style={styles.highlightCard}>
-                  <Text style={[type.overline, { color: palette.coral }]}>
-                    En çok yanlış yapılan soru
-                  </Text>
+                  <View style={styles.highlightHead}>
+                    <View style={styles.highlightBadge}>
+                      <Text style={styles.highlightEmoji} maxFontSizeMultiplier={1.1}>
+                        {mostWrongQuestion.visual}
+                      </Text>
+                    </View>
+                    <Text style={[type.overline, { color: palette.coral }]}>
+                      En çok yanlış yapılan soru
+                    </Text>
+                  </View>
                   <Text style={[type.bodyBold, { color: palette.ink }]}>
-                    {mostWrongQuestion.visual} {mostWrongQuestion.text}
+                    {mostWrongQuestion.text}
                   </Text>
                   <Text style={[type.caption, { color: palette.inkSoft }]}>
                     {mostWrongQuestion.grade}. sınıf · ❌ {stats.mostWrong.wrong} yanlış · ✅{' '}
@@ -155,13 +228,20 @@ export default function AdminAnalyticsScreen() {
             ) : null}
 
             {mostCorrectQuestion && stats.mostCorrect ? (
-              <Reveal delay={110}>
+              <Reveal delay={240}>
                 <GlassCard style={styles.highlightCard}>
-                  <Text style={[type.overline, { color: palette.success }]}>
-                    En çok doğru yapılan soru
-                  </Text>
+                  <View style={styles.highlightHead}>
+                    <View style={styles.highlightBadge}>
+                      <Text style={styles.highlightEmoji} maxFontSizeMultiplier={1.1}>
+                        {mostCorrectQuestion.visual}
+                      </Text>
+                    </View>
+                    <Text style={[type.overline, { color: palette.success }]}>
+                      En çok doğru yapılan soru
+                    </Text>
+                  </View>
                   <Text style={[type.bodyBold, { color: palette.ink }]}>
-                    {mostCorrectQuestion.visual} {mostCorrectQuestion.text}
+                    {mostCorrectQuestion.text}
                   </Text>
                   <Text style={[type.caption, { color: palette.inkSoft }]}>
                     {mostCorrectQuestion.grade}. sınıf · ✅ {stats.mostCorrect.correct} doğru
@@ -169,44 +249,6 @@ export default function AdminAnalyticsScreen() {
                 </GlassCard>
               </Reveal>
             ) : null}
-
-            <Reveal delay={140}>
-              <GlassCard style={styles.barCard}>
-                <Text style={[type.h3, { color: palette.ink }]}>🏫 Sınıf Bazlı Ortalama</Text>
-                {stats.perGrade.map((entry) => (
-                  <View key={entry.grade} style={styles.barRow}>
-                    <View style={styles.barLabelRow}>
-                      <Text style={[type.bodySemi, { color: palette.ink }]}>
-                        {entry.grade}. Sınıflar
-                      </Text>
-                      <Text style={[type.caption, { color: palette.inkSoft }]}>
-                        %{entry.percent} · {entry.count} katılımcı
-                      </Text>
-                    </View>
-                    <ProgressBar progress={entry.percent / 100} height={10} color="primary" />
-                  </View>
-                ))}
-              </GlassCard>
-            </Reveal>
-
-            <Reveal delay={170}>
-              <GlassCard style={styles.barCard}>
-                <Text style={[type.h3, { color: palette.ink }]}>📚 Konu Bazlı Başarı</Text>
-                {stats.perTopic.map((entry) => (
-                  <View key={entry.topic.id} style={styles.barRow}>
-                    <View style={styles.barLabelRow}>
-                      <Text style={[type.bodySemi, { color: palette.ink }]}>
-                        {entry.topic.icon} {entry.topic.name}
-                      </Text>
-                      <Text style={[type.caption, { color: palette.inkSoft }]}>
-                        %{entry.percent} · {entry.total} cevap
-                      </Text>
-                    </View>
-                    <ProgressBar progress={entry.percent / 100} height={10} color="success" />
-                  </View>
-                ))}
-              </GlassCard>
-            </Reveal>
           </>
         )}
       </View>
@@ -216,20 +258,33 @@ export default function AdminAnalyticsScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    gap: space.lg,
+    gap: space.xl,
+    paddingBottom: space.md,
   },
-  grid: {
-    gap: space.md,
+  sectionCard: {
+    gap: space.xl,
   },
-  row: {
+  summaryRow: {
     flexDirection: 'row',
-    gap: space.md,
-  },
-  highlightCard: {
-    gap: space.sm,
-  },
-  barCard: {
+    alignItems: 'center',
     gap: space.lg,
+  },
+  summaryEmoji: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: palette.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  summaryEmojiText: {
+    fontSize: 20,
+  },
+  summaryLabel: {
+    flex: 1,
+  },
+  bars: {
+    gap: space.xl,
   },
   barRow: {
     gap: space.sm,
@@ -238,5 +293,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: space.md,
+  },
+  highlightCard: {
+    gap: space.lg,
+  },
+  highlightHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+  },
+  highlightBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.lg,
+    backgroundColor: palette.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  highlightEmoji: {
+    fontSize: 22,
   },
 });

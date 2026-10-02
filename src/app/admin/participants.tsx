@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     paddingRight: space.lg,
   },
   list: {
-    gap: space.sm,
+    gap: space.md,
     marginTop: space.xs,
   },
   row: {

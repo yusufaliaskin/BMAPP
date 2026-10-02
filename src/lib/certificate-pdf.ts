@@ -135,3 +135,16 @@ export async function createCertificatePdf(
   }
   return { uri };
 }
+
+/** Üretilmiş PDF dosyasını paylaşır/kaydettirir (paylaş menüsü → "Dosyalara kaydet"). */
+export async function shareCertificatePdfFile(
+  uri: string,
+  certificateNumber: string,
+): Promise<void> {
+  if (!(await Sharing.isAvailableAsync())) return;
+  await Sharing.shareAsync(uri, {
+    mimeType: 'application/pdf',
+    dialogTitle: `${certificateNumber} — paylaş veya Dosyalara kaydet`,
+    UTI: 'com.adobe.pdf',
+  });
+}

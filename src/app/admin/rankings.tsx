@@ -17,8 +17,8 @@ import { Screen } from '@/components/ui/Screen';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { EmptyState } from '@/components/ui/states';
 import { deleteParticipantResult, issueCertificatesForGrade } from '@/data/actions';
-import { useCertificates, useRankingsFor } from '@/data/hooks';
-import { MEDAL_EMOJI, MEDAL_LABEL } from '@/domain/models';
+import { useCertificates, useConfig, useRankingsFor, useResults } from '@/data/hooks';
+import { GRADES, MEDAL_EMOJI, MEDAL_LABEL } from '@/domain/models';
 import type { Grade } from '@/domain/models';
 import { emojiForCode } from '@/lib/participant';
 import { glassSurface, palette, radius, space, type } from '@/theme';
@@ -33,7 +33,13 @@ const GRADE_OPTIONS = [
 export default function AdminRankingsScreen() {
   const router = useRouter();
   const certificates = useCertificates();
-  const [grade, setGrade] = useState<Grade>(3);
+  const config = useConfig();
+  const results = useResults();
+  // Varsayılan sekme: sonucu olan ilk sınıf (boş seviye açılmasın).
+  const [grade, setGrade] = useState<Grade>(() => {
+    const firstWithData = GRADES.find((g) => results.some((r) => r.grade === g));
+    return firstWithData ?? 1;
+  });
   const [busy, setBusy] = useState(false);
   const [report, setReport] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -42,6 +48,10 @@ export default function AdminRankingsScreen() {
 
   const issue = () => {
     if (busy) return;
+    if (ranked.length === 0) {
+      setReport(`ℹ️ ${grade}. sınıflarda henüz katılımcı yok — önce test çözülmeli.`);
+      return;
+    }
     setBusy(true);
     setReport(null);
     try {
@@ -113,7 +123,7 @@ export default function AdminRankingsScreen() {
                 (c) =>
                   c.participantCode === entry.participantCode &&
                   c.grade === grade &&
-                  c.period === c.period,
+                  c.period === config.period,
               );
               const isTop3 = entry.rank <= 3;
               return (

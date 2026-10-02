@@ -13,6 +13,7 @@ import * as Haptics from 'expo-haptics';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { Confetti } from '@/components/ui/Confetti';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { FeedbackSheet, type FeedbackState } from '@/components/ui/FeedbackSheet';
 import { OptionButton, type OptionState } from '@/components/ui/OptionButton';
 import { PressableScale } from '@/components/ui/PressableScale';
@@ -246,29 +247,18 @@ export default function QuestionScreen() {
       )}
 
       {showExit ? (
-        <View style={styles.exitOverlay}>
-          <GlassCard level="strong" style={styles.exitCard}>
-            <Text style={[type.h3, styles.center, { color: palette.ink }]}>
-              Testten çıkılsın mı?
-            </Text>
-            <Text style={[type.body, styles.center, { color: palette.inkSoft }]}>
-              Puanın kaydedilmez ve baştan başlarsın.
-            </Text>
-            <Button
-              label="TESTE DÖN →"
-              onPress={() => setShowExit(false)}
-              accessibilityHint="Teste kaldığın yerden devam eder"
-            />
-            <Button
-              label="Çık"
-              variant="danger"
-              onPress={() => {
-                clearTestSession();
-                router.replace('/onboarding/welcome');
-              }}
-            />
-          </GlassCard>
-        </View>
+        <ConfirmDialog
+          visible={showExit}
+          title="Testten çıkılsın mı?"
+          message="Puanın kaydedilmez ve baştan başlarsın."
+          cancelLabel="TESTE DÖN →"
+          confirmLabel="ÇIK"
+          onCancel={() => setShowExit(false)}
+          onConfirm={() => {
+            clearTestSession();
+            router.replace('/onboarding/welcome');
+          }}
+        />
       ) : null}
     </Screen>
   );
@@ -359,8 +349,7 @@ const styles = StyleSheet.create({
   center: {
     textAlign: 'center',
   },
-  savingWrap: {
-    flex: 1,
+  savingWrap: {    flex: 1,
     justifyContent: 'center',
   },
   savingCard: {
@@ -368,19 +357,5 @@ const styles = StyleSheet.create({
   },
   savingEmoji: {
     fontSize: 52,
-  },
-  exitOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(23,35,63,0.35)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: space.xl,
-    zIndex: 10,
-  },
-  exitCard: {
-    width: '100%',
-    maxWidth: 400,
-    gap: space.md,
-    backgroundColor: palette.white,
   },
 });

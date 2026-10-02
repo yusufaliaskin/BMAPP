@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     padding: space.md,
   },
   list: {
-    gap: space.sm,
+    gap: space.md,
   },
   row: {
     flexDirection: 'row',

@@ -1,13 +1,16 @@
 /**
  * Admin dashboard (§21, kiosk uyarlaması) — toplam katılımcı, bugünkü katılım,
  * ortalama/en yüksek puan ve sınıf seviyesi kırılımı; alt yönetim ekranlarına giriş.
+ * Panelden çıkış onay ister ("Çıkmak istiyor musunuz?").
  */
 
+import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { GlassCard } from '@/components/glass/GlassCard';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Reveal } from '@/components/ui/Reveal';
@@ -24,6 +27,7 @@ export default function AdminDashboardScreen() {
   const results = useResults();
   const todayCount = useTodayCount();
   const gradeSettings = useGradeSettings();
+  const [showExit, setShowExit] = useState(false);
 
   const participants = results.length;
   const totalScore = results.reduce((sum, result) => sum + result.score, 0);
@@ -35,17 +39,14 @@ export default function AdminDashboardScreen() {
   );
 
   return (
-    <Screen
-      title="Yönetim Paneli"
-      onBack={() => router.replace('/onboarding/welcome')}
-      scroll
-    >
+    <Screen title="Yönetim Paneli" onBack={() => setShowExit(true)} scroll>
       <View style={styles.container}>
         <Reveal>
           <Text style={[type.caption, { color: palette.inkSoft }]}>
             👤 {adminName ?? 'Yönetici'} olarak giriş yapıldı · Hoş geldiniz
           </Text>
         </Reveal>
+
         <Reveal style={styles.statsGrid}>
           <View style={styles.statsRow}>
             <StatCard emoji="👥" value={participants} label="Toplam katılımcı" accent="sky" />
@@ -72,13 +73,19 @@ export default function AdminDashboardScreen() {
                   : 0;
               return (
                 <View key={grade} style={styles.gradeRow}>
-                  <View style={styles.gradeLabelRow}>
-                    <Text style={[type.bodyBold, { color: palette.ink }]}>
-                      {grade}. Sınıflar
-                    </Text>
-                    <Text style={[type.caption, { color: palette.inkSoft }]}>
-                      {gradeResults.length} katılımcı · ort. {gradeAvg} · {settings?.questionCount} soru
-                    </Text>
+                  <View style={styles.gradeTop}>
+                    <View style={styles.gradeBadge}>
+                      <Text style={[type.h3, { color: palette.primary }]}>{grade}</Text>
+                    </View>
+                    <View style={styles.gradeInfo}>
+                      <Text style={[type.bodyBold, { color: palette.ink }]}>
+                        {grade}. Sınıflar
+                      </Text>
+                      <Text style={[type.caption, { color: palette.inkFaint }]}>
+                        {gradeResults.length} katılımcı · ort. {gradeAvg} puan ·{' '}
+                        {settings?.questionCount ?? '—'} soru
+                      </Text>
+                    </View>
                   </View>
                   <ProgressBar progress={gradeResults.length / maxGradeCount} height={10} />
                 </View>
@@ -133,11 +140,21 @@ export default function AdminDashboardScreen() {
           <AdminLink
             emoji="⚙️"
             label="Ayarlar"
-            detail="Soru sayısı, sertifika başlıkları, PIN"
+            detail="Soru sayısı, sertifika başlıkları"
             onPress={() => router.push('/admin/settings')}
           />
         </Reveal>
       </View>
+
+      <ConfirmDialog
+        visible={showExit}
+        title="Çıkmak istiyor musunuz?"
+        message="Yönetici panelinden çıkıp kiosk ekranına dönersiniz."
+        cancelLabel="PANELDE KAL"
+        confirmLabel="ÇIK"
+        onCancel={() => setShowExit(false)}
+        onConfirm={() => router.replace('/onboarding/welcome')}
+      />
     </Screen>
   );
 }
@@ -177,7 +194,7 @@ function AdminLink({ emoji, label, detail, onPress }: AdminLinkProps) {
 
 const styles = StyleSheet.create({
   container: {
-    gap: space.lg,
+    gap: space.xl,
   },
   statsGrid: {
     gap: space.md,
@@ -187,23 +204,35 @@ const styles = StyleSheet.create({
     gap: space.md,
   },
   gradeCard: {
-    gap: space.lg,
+    gap: space.xl,
   },
   gradeRow: {
-    gap: space.sm,
+    gap: space.md,
   },
-  gradeLabelRow: {
+  gradeTop: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: space.md,
+  },
+  gradeBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: palette.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gradeInfo: {
+    flex: 1,
+    gap: 2,
   },
   links: {
-    gap: space.md,
+    gap: space.lg,
   },
   linkRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space.md,
+    gap: space.lg,
     padding: space.lg,
   },
   linkEmoji: {

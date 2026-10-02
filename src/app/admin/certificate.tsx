@@ -1,7 +1,7 @@
 /**
- * Admin — Sertifika önizleme (kiosk uyarlaması): katılımcı koduna göre sertifika;
- * madalya sınıfı görünür. PDF üretimi gerçek: mobilde dosya + paylaşım,
- * web'de yazdırma penceresi.
+ * Admin — Sertifika önizleme: "oluştur → paylaş/kaydet" akışı.
+ * Mobilde: PDF OLUŞTUR dosyayı hazırlar, PAYLAŞ / KAYDET paylaş menüsünü açar
+ * (menüden "Dosyalara kaydet" ile telefona iner). Web'de yazdırma penceresi açılır.
  */
 
 import { useState } from 'react';
@@ -16,7 +16,7 @@ import { Screen } from '@/components/ui/Screen';
 import { EmptyState } from '@/components/ui/states';
 import { useCertificates, useConfig } from '@/data/hooks';
 import { certificateForParticipant } from '@/domain/engine/certificates';
-import { createCertificatePdf } from '@/lib/certificate-pdf';
+import { createCertificatePdf, shareCertificatePdfFile } from '@/lib/certificate-pdf';
 import { palette, space, type } from '@/theme';
 
 export default function AdminCertificatePreviewScreen() {
@@ -24,6 +24,7 @@ export default function AdminCertificatePreviewScreen() {
   const { participantCode } = useLocalSearchParams<{ participantCode?: string }>();
   const certificates = useCertificates();
   const config = useConfig();
+  const [generatedUri, setGeneratedUri] = useState<string | null>(null);
   const [busy, setBusy] = useState<'none' | 'pdf' | 'share'>('none');
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -48,23 +49,42 @@ export default function AdminCertificatePreviewScreen() {
     );
   }
 
-  const run = async (mode: 'pdf' | 'share') => {
+  const createPdf = async () => {
     if (busy !== 'none') return;
-    setBusy(mode);
+    setBusy('pdf');
     setError(null);
     setInfo(null);
     try {
-      const outcome = await createCertificatePdf(certificate, config, {
-        share: mode === 'share',
-      });
+      const outcome = await createCertificatePdf(certificate, config);
       if (Platform.OS === 'web') {
         setInfo('Yazdırma penceresinde "PDF olarak kaydet" seçeneğini kullanabilirsin.');
-      } else if (outcome.uri && mode === 'pdf') {
-        setInfo(`PDF hazır: ${certificate.number}.pdf`);
+      } else if (outcome.uri) {
+        setGeneratedUri(outcome.uri);
+        setInfo('✅ PDF hazır — "PAYLAŞ / KAYDET" ile telefonuna kaydedebilirsin.');
       }
     } catch (issue) {
       console.warn('Sertifika PDF oluşturulamadı.', issue);
       setError('PDF oluşturulamadı. Lütfen tekrar dene.');
+    } finally {
+      setBusy('none');
+    }
+  };
+
+  const sharePdf = async () => {
+    if (busy !== 'none') return;
+    setBusy('share');
+    setError(null);
+    setInfo(null);
+    try {
+      if (generatedUri) {
+        await shareCertificatePdfFile(generatedUri, certificate.number);
+      } else {
+        await createCertificatePdf(certificate, config, { share: true });
+      }
+      setInfo('Paylaş menüsünden "Dosyalara kaydet" veya Drive’a yükle seçebilirsin.');
+    } catch (issue) {
+      console.warn('Sertifika paylaşılamadı.', issue);
+      setError('Paylaşım açılamadı. Lütfen tekrar dene.');
     } finally {
       setBusy('none');
     }
@@ -92,21 +112,31 @@ export default function AdminCertificatePreviewScreen() {
               </Text>
             </GlassCard>
           ) : null}
-          <Button
-            label={Platform.OS === 'web' ? 'PDF OLARAK KAYDET 📄' : 'PDF OLUŞTUR 📄'}
-            onPress={() => void run('pdf')}
-            loading={busy === 'pdf'}
-            disabled={busy !== 'none'}
-          />
-          {Platform.OS !== 'web' ? (
+          {Platform.OS === 'web' ? (
             <Button
-              label="PAYLAŞ 📤"
-              variant="glass"
-              onPress={() => void run('share')}
-              loading={busy === 'share'}
+              label="PDF OLARAK KAYDET 📄"
+              onPress={() => void createPdf()}
+              loading={busy === 'pdf'}
               disabled={busy !== 'none'}
             />
-          ) : null}
+          ) : (
+            <>
+              <Button
+                label={generatedUri ? 'PDF HAZIR ✅' : 'PDF OLUŞTUR 📄'}
+                onPress={() => void createPdf()}
+                loading={busy === 'pdf'}
+                disabled={busy !== 'none' || generatedUri !== null}
+                variant="glass"
+              />
+              <Button
+                label="PAYLAŞ / KAYDET 📤"
+                onPress={() => void sharePdf()}
+                loading={busy === 'share'}
+                disabled={busy !== 'none'}
+                accessibilityHint="Paylaş menüsünü açar; menüden Dosyalara kaydet seçilebilir"
+              />
+            </>
+          )}
         </Reveal>
       </View>
     </Screen>
@@ -122,7 +152,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   actions: {
-    gap: space.sm,
+    gap: space.md,
   },
   center: {
     textAlign: 'center',

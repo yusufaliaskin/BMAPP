@@ -4,12 +4,26 @@
  */
 
 import type { ReactNode } from 'react';
+import { Component } from 'react';
 import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { blur, radius, shadows, space, surface, type GlassLevel } from '@/theme';
 import { useBlurTarget } from './blur-target';
+
+/** Native blur bir cihazda patlarsa kartı çökertmesin; sessizce yarı saydam cama düşer. */
+class BlurBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
 
 interface GlassCardProps {
   children?: ReactNode;
@@ -67,17 +81,19 @@ export function GlassCard({
         ]}
       >
         {withBlur && canBlur ? (
-          <BlurView
-            intensity={BLUR_INTENSITY[level]}
-            tint="light"
-            {...(Platform.OS === 'android'
-              ? {
-                  blurMethod: 'dimezisBlurViewSdk31Plus' as const,
-                  blurTarget: blurTargetRef ?? undefined,
-                }
-              : {})}
-            style={StyleSheet.absoluteFill}
-          />
+          <BlurBoundary>
+            <BlurView
+              intensity={BLUR_INTENSITY[level]}
+              tint="light"
+              {...(Platform.OS === 'android'
+                ? {
+                    blurMethod: 'dimezisBlurViewSdk31Plus' as const,
+                    blurTarget: blurTargetRef ?? undefined,
+                  }
+                : {})}
+              style={StyleSheet.absoluteFill}
+            />
+          </BlurBoundary>
         ) : null}
         <View
           style={[

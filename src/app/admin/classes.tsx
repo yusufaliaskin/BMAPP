@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: space.sm,
+    gap: space.md,
   },
   cell: {
     flexGrow: 1,

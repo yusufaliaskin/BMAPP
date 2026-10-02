@@ -5,10 +5,12 @@
  */
 
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
 import { GlassCard } from '@/components/glass/GlassCard';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
@@ -20,6 +22,7 @@ export default function GradeScreen() {
   const router = useRouter();
   const { name } = useLocalSearchParams<{ name?: string }>();
   const classes = useClasses();
+  const [showExit, setShowExit] = useState(false);
 
   if (!name) return <Redirect href="/onboarding/welcome" />;
 
@@ -31,7 +34,7 @@ export default function GradeScreen() {
   };
 
   return (
-    <Screen title="" onBack={() => router.back()} scroll>
+    <Screen title="" onBack={() => setShowExit(true)} scroll>
       <View style={styles.body}>
         <Reveal style={styles.header}>
           <Text style={[type.h1, styles.center, { color: palette.ink }]}>
@@ -75,6 +78,15 @@ export default function GradeScreen() {
           );
         })}
       </View>
+      <ConfirmDialog
+        visible={showExit}
+        title="Çıkmak istiyor musunuz?"
+        message="Baştan başlarsın."
+        cancelLabel="KAL"
+        confirmLabel="ÇIK"
+        onCancel={() => setShowExit(false)}
+        onConfirm={() => router.back()}
+      />
     </Screen>
   );
 }

@@ -10,6 +10,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
@@ -24,6 +25,7 @@ export default function NameScreen() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [error, setError] = useState<string | undefined>(undefined);
+  const [showExit, setShowExit] = useState(false);
 
   const trimmed = name.trim();
   const valid = NAME_PATTERN.test(trimmed);
@@ -42,7 +44,7 @@ export default function NameScreen() {
   };
 
   return (
-    <Screen title="" onBack={() => router.back()} keyboard>
+    <Screen title="" onBack={() => setShowExit(true)} keyboard>
       <View style={styles.body}>
         <Reveal style={styles.heroRow}>
           <Text style={styles.emoji} maxFontSizeMultiplier={1.1}>
@@ -84,6 +86,15 @@ export default function NameScreen() {
           accessibilityHint="Sınıf seçme ekranına geçer"
         />
       </Reveal>
+      <ConfirmDialog
+        visible={showExit}
+        title="Çıkmak istiyor musunuz?"
+        message="Yazdığın isim kaybolur."
+        cancelLabel="KAL"
+        confirmLabel="ÇIK"
+        onCancel={() => setShowExit(false)}
+        onConfirm={() => router.back()}
+      />
     </Screen>
   );
 }
