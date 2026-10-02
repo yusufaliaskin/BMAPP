@@ -75,13 +75,16 @@ export const seedClasses: SchoolClass[] = GRADES.flatMap((grade) =>
 );
 
 /**
- * Sonuç ekranı unvan kuralları — kiosk modelinde birikimli rozet yoktur;
- * unvan yalnızca o testin puanına göre anlık gösterilir (§18 uyarlaması).
+ * Sonuç ekranı HAYVAN unvanları — puana göre oyuncuya bir hayvan verilir;
+ * bariz üstünlük/küçümseme yok, her seviyede teşvik edici (kiosk uyarlaması).
  */
 export const seedTitles: TitleRule[] = [
-  { minPercent: 100, name: 'Sınıfın Bilgesi', emoji: '🧠' },
-  { minPercent: 90, name: 'Farkındalık Kahramanı', emoji: '🏆' },
-  { minPercent: 70, name: 'Bilinçli Kahraman', emoji: '🌟' },
+  { minPercent: 100, name: 'Altın Aslan', emoji: '🦁' },
+  { minPercent: 90, name: 'Keskin Kartal', emoji: '🦅' },
+  { minPercent: 70, name: 'Akıllı Tilki', emoji: '🦊' },
+  { minPercent: 50, name: 'Denge Yunusu', emoji: '🐬' },
+  { minPercent: 30, name: 'Sağlam Kaplumbağa', emoji: '🐢' },
+  { minPercent: 0, name: 'Cesur Yavru', emoji: '🐣' },
 ];
 
 export const seedGradeSettings: GradeSettings[] = [
@@ -821,4 +824,20 @@ export function applyQuestionContentFixes(questions: Question[]): boolean {
     }
   }
   return changed;
+}
+
+const LEGACY_TITLE_NAMES = ['Sınıfın Bilgesi', 'Farkındalık Kahramanı', 'Bilinçli Kahraman'];
+
+/**
+ * Eski 3'lü unvan setini HAYVAN setiyle değiştirir — yalnız birebir eski setle
+ * eşleşiyorsa (admin kendi kuralını yazdıysa dokunulmaz).
+ */
+export function applyConfigTitleMigration(config: AppConfig): boolean {
+  const names = config.titles.map((title) => title.name);
+  const isLegacy =
+    config.titles.length === LEGACY_TITLE_NAMES.length &&
+    LEGACY_TITLE_NAMES.every((name) => names.includes(name));
+  if (!isLegacy) return false;
+  config.titles = seedTitles;
+  return true;
 }

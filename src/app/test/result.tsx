@@ -1,8 +1,9 @@
 /**
- * Test sonucu (§14, kiosk akışı) — kaydedilmiş gerçek sonuçtan okunur; puan burada
- * yeniden hesaplanmaz. Kayıt onayı + derece durumu + ilk 3 önizlemesi gösterilir;
- * tek ana aksiyon SIFIRLA'dır: geçici durum temizlenir, veritabanına DOKUNULMAZ,
- * sıradaki çocuk için karşılama ekranı açılır.
+ * Test sonucu (§14, kiosk akışı) — sade ve simetrik düzen:
+ *   1) Kahraman bloğu: puana göre HAYVAN + unvan adı
+ *   2) Puan kartı: ⭐ puan · doğru/yanlış/süre · "kaydedildi" satırı
+ *   3) Derece kartı: sıra + ilk 3 önizlemesi
+ *   4) Tek ana aksiyon: SIFIRLA (geçici state temizlenir; veritabanına DOKUNULMAZ)
  */
 
 import { useEffect, useState } from 'react';
@@ -83,7 +84,6 @@ export default function ResultScreen() {
   const myRank = rankOf(ranked, result.id);
   const top3 = ranked.slice(0, 3);
   const title = titleForResult(result.score, result.maxScore, config.titles);
-  const avatar = emojiForCode(result.participantCode);
   const section = result.classId.replace(/^\d/, '');
 
   return (
@@ -91,16 +91,25 @@ export default function ResultScreen() {
       {showConfetti ? <Confetti onDone={() => setShowConfetti(false)} /> : null}
       <View style={styles.stack}>
         <Reveal style={styles.hero}>
-          <Text style={styles.heroEmoji} maxFontSizeMultiplier={1.1}>
-            🏆
-          </Text>
+          <View style={styles.portal}>
+            <Text style={styles.portalEmoji} maxFontSizeMultiplier={1.05}>
+              {title ? title.emoji : emojiForCode(result.participantCode)}
+            </Text>
+          </View>
           <Text style={[type.h1, styles.center, { color: palette.ink }]}>TEST BİTTİ!</Text>
           <Text style={[type.bodySemi, styles.center, { color: palette.inkSoft }]}>
-            {avatar} {result.displayName} · {result.grade}/{section}
+            {result.displayName} · {result.grade}/{section}
           </Text>
+          {title ? (
+            <View style={[styles.titleChip, glassSurface('strong')]}>
+              <Text style={[type.label, { color: palette.rewardDeep }]}>
+                🎖️ {title.name}
+              </Text>
+            </View>
+          ) : null}
         </Reveal>
 
-        <Reveal delay={70}>
+        <Reveal delay={80}>
           <GlassCard glint level="strong" style={styles.scoreCard}>
             <View style={styles.scoreRow}>
               <Text style={styles.scoreStar} maxFontSizeMultiplier={1.1}>
@@ -113,31 +122,16 @@ export default function ResultScreen() {
               ✅ {result.correct} doğru · ❌ {result.wrong} yanlış · ⏱️{' '}
               {formatDuration(result.durationMs)}
             </Text>
-          </GlassCard>
-        </Reveal>
-
-        <Reveal delay={120}>
-          <View style={[styles.savedRow, glassSurface('strong')]}>
+            <View style={styles.divider} />
             <Text style={[type.caption, styles.center, { color: palette.success }]}>
               ✅ Sonucun kaydedildi · Katılımcı No: {result.participantCode}
             </Text>
-          </View>
+          </GlassCard>
         </Reveal>
 
-        {title ? (
-          <Reveal delay={160}>
-            <GlassCard style={styles.titleCard}>
-              <Text style={[type.h3, { color: palette.ink }]}>🎖️ Unvanın</Text>
-              <Text style={[type.h2, { color: palette.rewardDeep }]}>
-                {title.emoji} {title.name}
-              </Text>
-            </GlassCard>
-          </Reveal>
-        ) : null}
-
-        <Reveal delay={200}>
+        <Reveal delay={140}>
           <GlassCard style={styles.rankCard}>
-            <Text style={[type.bodySemi, { color: palette.inkSoft }]}>📜 Derece durumu</Text>
+            <Text style={[type.bodySemi, { color: palette.inkSoft }]}>📜 Derece durumun</Text>
             {myRank ? (
               <>
                 <Text style={[type.display, { color: palette.rewardDeep }]}>
@@ -152,10 +146,7 @@ export default function ResultScreen() {
               {top3.map((entry) => {
                 const isMe = myRank ? entry.resultId === myRank.resultId : false;
                 return (
-                  <View
-                    key={entry.resultId}
-                    style={[styles.topRow, isMe ? styles.topRowMe : null]}
-                  >
+                  <View key={entry.resultId} style={[styles.topRow, isMe ? styles.topRowMe : null]}>
                     <Text style={styles.topMedal}>{medalEmoji(entry.rank)}</Text>
                     <Text style={styles.topAvatar}>{emojiForCode(entry.participantCode)}</Text>
                     <Text
@@ -181,7 +172,7 @@ export default function ResultScreen() {
         </Reveal>
       </View>
 
-      <Reveal delay={260} style={styles.footer}>
+      <Reveal delay={200} style={styles.footer}>
         <Button
           label="SIFIRLA 🔄 YENİ KATILIMCI"
           onPress={reset}
@@ -204,10 +195,25 @@ const styles = StyleSheet.create({
   },
   hero: {
     alignItems: 'center',
-    gap: space.xs,
+    gap: space.sm,
   },
-  heroEmoji: {
-    fontSize: 56,
+  portal: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: palette.primarySoft,
+    borderWidth: 3,
+    borderColor: palette.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  portalEmoji: {
+    fontSize: 52,
+  },
+  titleChip: {
+    borderRadius: radius.pill,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.xs,
   },
   center: {
     textAlign: 'center',
@@ -224,18 +230,11 @@ const styles = StyleSheet.create({
   scoreStar: {
     fontSize: 30,
   },
-  savedRow: {
-    borderRadius: radius.pill,
-    paddingVertical: space.sm,
-    paddingHorizontal: space.lg,
-  },
-  footer: {
-    gap: space.sm,
-    marginTop: space.sm,
-  },
-  titleCard: {
-    alignItems: 'center',
-    gap: space.xs,
+  divider: {
+    alignSelf: 'stretch',
+    height: 1,
+    backgroundColor: 'rgba(23,35,63,0.08)',
+    marginVertical: space.md,
   },
   rankCard: {
     alignItems: 'center',
@@ -268,6 +267,10 @@ const styles = StyleSheet.create({
   },
   topName: {
     flex: 1,
+  },
+  footer: {
+    gap: space.sm,
+    marginTop: space.sm,
   },
   centerWrap: {
     flex: 1,

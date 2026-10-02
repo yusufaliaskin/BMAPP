@@ -34,7 +34,15 @@ export default function AdminLayout() {
     return <Redirect href="/admin/login" />;
   }
 
-  const content: ReactNode = <Stack screenOptions={{ headerShown: false }} />;
+  const content: ReactNode = (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+        gestureEnabled: true,
+      }}
+    />
+  );
 
   return (
     <AdminGateContext.Provider

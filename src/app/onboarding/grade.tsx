@@ -1,147 +1,79 @@
 /**
- * Sınıf/şube seçimi — büyük harf kartları (§6, kiosk akışı).
- * Şubeler A'dan Z'ye uzanır; seçim ızgarası kaydırılabilir, DEVAM butonu sabittir.
- * Karakter adımı yoktur: sıradaki çocuk için akış kısa tutulur.
+ * Sınıf/şube seçimi — TÜM sınıflar tek sayfada, gruplu ve dolu (§6, kiosk).
+ * Sayfa asla boş kalmaz: 1-4. sınıflar ve şubeleri (A-Z) baştan görünür.
+ * Harfe dokunmak seçim demektir ve çocuk HEMEN teste geçer.
  */
 
-import { useState } from 'react';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
 import { GlassCard } from '@/components/glass/GlassCard';
-import { Button } from '@/components/ui/Button';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
-import { SegmentedControl } from '@/components/ui/SegmentedControl';
-import { useClassesForGrade } from '@/data/hooks';
-import type { Grade } from '@/domain/models';
+import { useClasses } from '@/data/hooks';
+import { GRADES } from '@/domain/models';
 import { palette, radius, space, type } from '@/theme';
-
-const GRADE_OPTIONS = [
-  { value: 1, label: '1. Sınıf' },
-  { value: 2, label: '2. Sınıf' },
-  { value: 3, label: '3. Sınıf' },
-  { value: 4, label: '4. Sınıf' },
-] as const;
 
 export default function GradeScreen() {
   const router = useRouter();
   const { name } = useLocalSearchParams<{ name?: string }>();
-  const [grade, setGrade] = useState<Grade | null>(null);
-  const [section, setSection] = useState<string | null>(null);
-  const classes = useClassesForGrade(grade ?? 1);
+  const classes = useClasses();
 
   if (!name) return <Redirect href="/onboarding/welcome" />;
 
-  const goNext = () => {
-    if (grade === null || !section) return;
+  const pick = (classId: string) => {
     if (Platform.OS !== 'web') {
       void Haptics.selectionAsync().catch(() => undefined);
     }
-    router.push({
-      pathname: '/test/start',
-      params: { name, classId: `${grade}${section}` },
-    });
+    router.push({ pathname: '/test/start', params: { name, classId } });
   };
 
   return (
-    <Screen
-      title=""
-      onBack={() => router.back()}
-      scroll
-      footer={
-        <Reveal delay={120}>
-          <Button
-            label="DEVAM ET →"
-            onPress={goNext}
-            disabled={grade === null || !section}
-            accessibilityHint="Test hazırlık ekranına geçer"
-          />
-        </Reveal>
-      }
-    >
+    <Screen title="" onBack={() => router.back()} scroll>
       <View style={styles.body}>
         <Reveal style={styles.header}>
-          <Text style={[type.h1, styles.center, { color: palette.ink }]}>Hangi sınıftasın? 🏫</Text>
+          <Text style={[type.h1, styles.center, { color: palette.ink }]}>
+            Hangi sınıftasın? 🏫
+          </Text>
+          <Text style={[type.bodySemi, styles.center, { color: palette.inkSoft }]}>
+            Sınıfını bul, harfine dokun — hemen başlıyoruz! 🚀
+          </Text>
         </Reveal>
-        <Reveal delay={70}>
-          <SegmentedControl
-            accessibilityLabel="Sınıf seçimi"
-            options={GRADE_OPTIONS.map((option) => ({ ...option }))}
-            value={grade ?? 0}
-            onChange={(value) => {
-              setGrade(value as Grade);
-              setSection(null);
-            }}
-          />
-        </Reveal>
-        {grade !== null ? (
-          <Reveal delay={130} style={styles.sectionArea}>
-            <View style={styles.sectionHead}>
-              <Text style={[type.label, { color: palette.inkSoft }]}>Şubeni seç</Text>
-              <Text style={[type.caption, { color: palette.inkFaint }]}>
-                Harfine dokun 👇
-              </Text>
-            </View>
-            <View style={styles.grid}>
-              {classes.map((item) => {
-                const isSelected = section === item.section;
-                return (
-                  <PressableScale
-                    key={item.id}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${item.grade}/${item.section} şubesi`}
-                    accessibilityState={{ selected: isSelected }}
-                    haptic="selection"
-                    onPress={() => setSection(item.section)}
-                    style={styles.cell}
-                  >
-                    <GlassCard
-                      padded={false}
-                      style={styles.cellCard}
-                      outline={isSelected ? palette.primary : undefined}
-                      tint={isSelected ? palette.primary : undefined}
+        {GRADES.map((grade, gradeIndex) => {
+          const gradeClasses = classes
+            .filter((item) => item.grade === grade && item.isActive)
+            .sort((a, b) => a.section.localeCompare(b.section));
+          return (
+            <Reveal key={grade} delay={60 + gradeIndex * 50}>
+              <GlassCard style={styles.gradeCard}>
+                <Text style={[type.h3, { color: palette.ink }]}>🏫 {grade}. Sınıflar</Text>
+                <View style={styles.grid}>
+                  {gradeClasses.map((item) => (
+                    <PressableScale
+                      key={item.id}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${item.grade}/${item.section} şubesi`}
+                      haptic="selection"
+                      onPress={() => pick(item.id)}
+                      style={styles.cell}
                     >
-                      <View style={styles.cellInner}>
-                        <Text
-                          style={[
-                            type.h2,
-                            { color: isSelected ? palette.white : palette.ink },
-                          ]}
-                        >
-                          {item.section}
-                        </Text>
-                        <Text
-                          style={[
-                            type.caption,
-                            {
-                              color: isSelected ? 'rgba(255,255,255,0.88)' : palette.inkFaint,
-                            },
-                          ]}
-                        >
-                          {item.grade}/{item.section}
-                        </Text>
-                      </View>
-                    </GlassCard>
-                  </PressableScale>
-                );
-              })}
-            </View>
-            {section !== null && grade !== null ? (
-              <Text style={[type.bodySemi, styles.center, { color: palette.success }]}>
-                ✅ Seçilen şube: {grade}/{section}
-              </Text>
-            ) : null}
-          </Reveal>
-        ) : (
-          <Reveal delay={130}>
-            <Text style={[type.caption, styles.center, { color: palette.inkFaint }]}>
-              Önce sınıfını seç 👆
-            </Text>
-          </Reveal>
-        )}
+                      <GlassCard padded={false} style={styles.cellCard}>
+                        <View style={styles.cellInner}>
+                          <Text style={[type.h2, { color: palette.ink }]}>{item.section}</Text>
+                          <Text style={[type.caption, { color: palette.inkFaint }]}>
+                            {item.grade}/{item.section}
+                          </Text>
+                        </View>
+                      </GlassCard>
+                    </PressableScale>
+                  ))}
+                </View>
+              </GlassCard>
+            </Reveal>
+          );
+        })}
       </View>
     </Screen>
   );
@@ -149,23 +81,19 @@ export default function GradeScreen() {
 
 const styles = StyleSheet.create({
   body: {
-    gap: space.xl,
+    gap: space.lg,
     marginTop: space.sm,
     paddingBottom: space.md,
   },
   header: {
+    gap: space.xs,
     marginBottom: space.xs,
   },
   center: {
     textAlign: 'center',
   },
-  sectionArea: {
+  gradeCard: {
     gap: space.md,
-  },
-  sectionHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
   },
   grid: {
     flexDirection: 'row',
@@ -174,8 +102,8 @@ const styles = StyleSheet.create({
   },
   cell: {
     flexGrow: 1,
-    flexBasis: '21%',
-    minWidth: 62,
+    flexBasis: '18%',
+    minWidth: 58,
   },
   cellCard: {
     borderRadius: radius.lg,

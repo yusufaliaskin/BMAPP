@@ -4,7 +4,7 @@
  * hareket azaltma açıkken tamamen sabittir.
  */
 
-import { useEffect } from 'react';
+import { useEffect, type RefObject } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -73,11 +73,16 @@ function Blob({ colors, size, position, drift, duration, opacity, reduced }: Blo
   );
 }
 
-export function AuroraBackground() {
+export function AuroraBackground({
+  targetRef,
+}: {
+  /** Android blurTarget için arka plan ref'i (Screen sağlar). */
+  targetRef?: RefObject<View | null>;
+}) {
   const reduced = useReducedMotion();
 
   return (
-    <View style={[StyleSheet.absoluteFill, styles.root, styles.noEvents]}>
+    <View ref={targetRef} style={[StyleSheet.absoluteFill, styles.root, styles.noEvents]}>
       <LinearGradient
         colors={['#F7FBFF', '#EEF4FF', '#F7F3FF']}
         style={StyleSheet.absoluteFill}

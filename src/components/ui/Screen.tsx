@@ -4,6 +4,7 @@
  */
 
 import type { ReactNode } from 'react';
+import { useRef } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -17,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { AuroraBackground } from '@/components/glass/AuroraBackground';
+import { BlurTargetProvider } from '@/components/glass/blur-target';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { glassSurface, layout, palette, radius, space, type } from '@/theme';
 import { Text } from 'react-native';
@@ -110,12 +112,16 @@ export function Screen({
     content
   );
 
+  const backgroundRef = useRef<View | null>(null);
+
   return (
     <View style={styles.root}>
-      <AuroraBackground />
-      <SafeAreaView style={styles.flex} edges={['top', 'left', 'right', 'bottom']}>
-        {keyboardWrap}
-      </SafeAreaView>
+      <BlurTargetProvider value={backgroundRef}>
+        <AuroraBackground targetRef={backgroundRef} />
+        <SafeAreaView style={styles.flex} edges={['top', 'left', 'right', 'bottom']}>
+          {keyboardWrap}
+        </SafeAreaView>
+      </BlurTargetProvider>
     </View>
   );
 }

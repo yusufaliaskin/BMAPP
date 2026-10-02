@@ -9,6 +9,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { blur, radius, shadows, space, surface, type GlassLevel } from '@/theme';
+import { useBlurTarget } from './blur-target';
 
 interface GlassCardProps {
   children?: ReactNode;
@@ -48,6 +49,10 @@ export function GlassCard({
   outline,
   tint,
 }: GlassCardProps) {
+  const blurTargetRef = useBlurTarget();
+  // Android'de gerçek blur için blurTarget şart; yoksa yarı saydam cama düşeriz (uyarısız).
+  const canBlur = Platform.OS !== 'android' || blurTargetRef !== null;
+
   return (
     <View style={[shadows.card, { borderRadius: radiusValue }, style]}>
       <View
@@ -61,11 +66,16 @@ export function GlassCard({
           },
         ]}
       >
-        {withBlur ? (
+        {withBlur && canBlur ? (
           <BlurView
             intensity={BLUR_INTENSITY[level]}
             tint="light"
-            experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : 'none'}
+            {...(Platform.OS === 'android'
+              ? {
+                  blurMethod: 'dimezisBlurViewSdk31Plus' as const,
+                  blurTarget: blurTargetRef ?? undefined,
+                }
+              : {})}
             style={StyleSheet.absoluteFill}
           />
         ) : null}

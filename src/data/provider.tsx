@@ -5,11 +5,12 @@
  */
 
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AuroraBackground } from '@/components/glass/AuroraBackground';
+import { BlurTargetProvider } from '@/components/glass/blur-target';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { ErrorView, LoadingView } from '@/components/ui/states';
 import { initStore } from './db';
@@ -20,6 +21,7 @@ type Phase = 'loading' | 'ready' | 'error';
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<Phase>('loading');
   const [attempt, setAttempt] = useState(0);
+  const backgroundRef = useRef<View | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -40,8 +42,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   return (
     <View style={styles.root}>
-      <AuroraBackground />
-      <SafeAreaView style={styles.safe}>
+      <BlurTargetProvider value={backgroundRef}>
+        <AuroraBackground targetRef={backgroundRef} />
+        <SafeAreaView style={styles.safe}>
         <View style={styles.column}>
           {phase === 'loading' ? (
             <GlassCard glint style={styles.card}>
@@ -72,6 +75,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           )}
         </View>
       </SafeAreaView>
+      </BlurTargetProvider>
     </View>
   );
 }

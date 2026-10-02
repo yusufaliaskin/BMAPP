@@ -51,6 +51,8 @@ export default function RootLayout() {
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: palette.white },
+            animation: 'slide_from_right',
+            gestureEnabled: true,
           }}
         />
       </StoreProvider>
