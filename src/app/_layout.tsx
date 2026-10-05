@@ -5,30 +5,22 @@
 
 import { useEffect } from 'react';
 import { Stack, useSegments } from 'expo-router';
+import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useKeepAwake } from 'expo-keep-awake';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import {
-  Baloo2_600SemiBold,
-  Baloo2_700Bold,
-  useFonts as useBalooFonts,
-} from '@expo-google-fonts/baloo-2';
-import {
-  DancingScript_400Regular,
-  DancingScript_700Bold,
-} from '@expo-google-fonts/dancing-script';
-import {
-  Nunito_400Regular,
-  Nunito_600SemiBold,
-  Nunito_700Bold,
-  Nunito_800ExtraBold,
-  useFonts as useNunitoFonts,
-} from '@expo-google-fonts/nunito';
-import {
-  PlayfairDisplay_400Regular,
-  PlayfairDisplay_700Bold,
-} from '@expo-google-fonts/playfair-display';
+// Yalnız kullanılan ağırlıklar alt yoldan (subpath) alınır: kullanılmayan
+// font dosyaları pakete girmesin (Metro kök paketi komple bundle ediyor).
+import { Baloo2_600SemiBold } from '@expo-google-fonts/baloo-2/600SemiBold';
+import { Baloo2_700Bold } from '@expo-google-fonts/baloo-2/700Bold';
+import { DancingScript_700Bold } from '@expo-google-fonts/dancing-script/700Bold';
+import { Nunito_400Regular } from '@expo-google-fonts/nunito/400Regular';
+import { Nunito_600SemiBold } from '@expo-google-fonts/nunito/600SemiBold';
+import { Nunito_700Bold } from '@expo-google-fonts/nunito/700Bold';
+import { Nunito_800ExtraBold } from '@expo-google-fonts/nunito/800ExtraBold';
+import { PlayfairDisplay_400Regular } from '@expo-google-fonts/playfair-display/400Regular';
+import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display/700Bold';
 
 import { StoreProvider } from '@/data/provider';
 import { palette } from '@/theme';
@@ -48,23 +40,20 @@ function KioskWakeLock() {
 }
 
 export default function RootLayout() {
-  const [balooLoaded, balooError] = useBalooFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Baloo2_600SemiBold,
     Baloo2_700Bold,
-    // Sertifikanın klasik dili: serif başlık + el yazısı ad.
-    PlayfairDisplay_400Regular,
-    PlayfairDisplay_700Bold,
-    DancingScript_400Regular,
-    DancingScript_700Bold,
-  });
-  const [nunitoLoaded, nunitoError] = useNunitoFonts({
     Nunito_400Regular,
     Nunito_600SemiBold,
     Nunito_700Bold,
     Nunito_800ExtraBold,
+    // Sertifikanın klasik dili: serif başlık + el yazısı ad.
+    PlayfairDisplay_400Regular,
+    PlayfairDisplay_700Bold,
+    DancingScript_700Bold,
   });
 
-  const ready = (balooLoaded && nunitoLoaded) || balooError || nunitoError;
+  const ready = fontsLoaded || fontError !== null;
   const segments = useSegments();
   const inKioskFlow = segments[0] === 'onboarding' || segments[0] === 'test';
 
@@ -86,7 +75,18 @@ export default function RootLayout() {
             animation: 'slide_from_right',
             gestureEnabled: true,
           }}
-        />
+        >
+          {/*
+            Kiosk akışında kenardan kaydırma ile geri gitme KAPALI: çocuk parmağıyla
+            yanlışlıkla akıştan düşmesin. Geri dönüş yalnız üstteki geri düğmesiyle ve
+            "Çıkmak istiyor musunuz?" onayıyla yapılır.
+          */}
+          <Stack.Screen name="onboarding/name" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="onboarding/grade" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="test/start" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="test/question" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="test/result" options={{ gestureEnabled: false }} />
+        </Stack>
       </StoreProvider>
     </GestureHandlerRootView>
   );

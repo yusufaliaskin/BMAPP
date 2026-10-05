@@ -151,7 +151,7 @@ export default function ResultScreen() {
                     <Text style={styles.topAvatar}>{emojiForCode(entry.participantCode)}</Text>
                     <Text
                       style={[type.bodySemi, styles.topName, { color: palette.ink }]}
-                      numberOfLines={1}
+                      numberOfLines={2}
                     >
                       {entry.displayName}
                       {isMe ? ' (sen)' : ''}
@@ -267,6 +267,7 @@ const styles = StyleSheet.create({
   },
   topName: {
     flex: 1,
+    minWidth: 0,
   },
   footer: {
     gap: space.sm,

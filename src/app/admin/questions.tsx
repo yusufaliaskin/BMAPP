@@ -107,7 +107,7 @@ export default function AdminQuestionsScreen() {
                           <Text style={[type.bodySemi, { color: palette.ink }]} numberOfLines={2}>
                             {question.text}
                           </Text>
-                          <Text style={[type.caption, { color: palette.inkFaint }]} numberOfLines={1}>
+                          <Text style={[type.caption, { color: palette.inkFaint }]} numberOfLines={2}>
                             {question.grade}. sınıf · {topic?.name ?? '—'} ·{' '}
                             {DIFFICULTY_LABEL[question.difficulty]} · {question.points} puan
                           </Text>
@@ -155,6 +155,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: space.md,
+    minHeight: 44,
   },
   inactive: {
     opacity: 0.55,
@@ -167,8 +168,8 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   addButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: radius.pill,
     backgroundColor: palette.primary,
     alignItems: 'center',

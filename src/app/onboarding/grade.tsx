@@ -5,8 +5,8 @@
  */
 
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { BackHandler, Platform, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
 import { GlassCard } from '@/components/glass/GlassCard';
@@ -23,6 +23,16 @@ export default function GradeScreen() {
   const { name } = useLocalSearchParams<{ name?: string }>();
   const classes = useClasses();
   const [showExit, setShowExit] = useState(false);
+
+  // Android donanım geri tuşu da seçimden sessizce kaçırmasın: onay sor.
+  useEffect(() => {
+    if (Platform.OS !== 'android') return undefined;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      setShowExit(true);
+      return true;
+    });
+    return () => subscription.remove();
+  }, []);
 
   if (!name) return <Redirect href="/onboarding/welcome" />;
 

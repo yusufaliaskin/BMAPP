@@ -93,10 +93,10 @@ export default function AdminCertificatesScreen() {
                         </Text>
                       </View>
                       <View style={styles.mid}>
-                        <Text style={[type.bodyBold, { color: palette.ink }]} numberOfLines={1}>
+                        <Text style={[type.bodyBold, { color: palette.ink }]} numberOfLines={2}>
                           {certificate.displayName}
                         </Text>
-                        <Text style={[type.caption, { color: palette.inkFaint }]} numberOfLines={1}>
+                        <Text style={[type.caption, { color: palette.inkFaint }]} numberOfLines={2}>
                           {MEDAL_LABEL[certificate.medal]} · {certificate.number} ·{' '}
                           {certificate.grade}/{certificate.section} ·{' '}
                           {formatDateTR(certificate.issuedAt)}
@@ -169,6 +169,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     borderRadius: radius.pill,
     paddingHorizontal: space.lg,
-    paddingVertical: space.sm,
+    minHeight: 44,
+    justifyContent: 'center',
   },
 });

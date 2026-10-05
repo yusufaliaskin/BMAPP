@@ -4,6 +4,8 @@
  * Kural: bileşenlerde ham hex yok; yalnız bu dosyadaki semantik tokenlar kullanılır.
  */
 
+import { Platform, type ViewStyle } from 'react-native';
+
 export const palette = {
   ink: '#17233F',
   inkSoft: '#5B6B8F',
@@ -48,36 +50,45 @@ export const medal = {
   bronzeSoft: '#F9E7D6',
 } as const;
 
-/** Gölge ön ayarları — kartlar ve aksiyonlar için tek ölçek. */
+/**
+ * Gölge ön ayarları — tek ölçek.
+ * Web'de react-native-web `shadow*` prop'larını kullanımdan kaldırdığı için CSS
+ * `boxShadow` karşılığı verilir; native tarafta (iOS gölgesi + Android elevation)
+ * davranış birebir korunur. Böylece iki platformda da uyarısız çizilir.
+ */
+function elevation(web: string, native: ViewStyle): ViewStyle {
+  return Platform.OS === 'web' ? { boxShadow: web } : native;
+}
+
 export const shadows = {
-  card: {
+  card: elevation('0px 10px 24px rgba(23,35,63,0.12)', {
     shadowColor: 'rgba(23,35,63,0.12)',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 1,
     shadowRadius: 24,
     elevation: 6,
-  },
-  soft: {
+  }),
+  soft: elevation('0px 6px 14px rgba(23,35,63,0.08)', {
     shadowColor: 'rgba(23,35,63,0.08)',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 1,
     shadowRadius: 14,
     elevation: 3,
-  },
-  glow: {
+  }),
+  glow: elevation('0px 10px 20px rgba(91,107,245,0.45)', {
     shadowColor: 'rgba(91,107,245,0.45)',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 1,
     shadowRadius: 20,
     elevation: 8,
-  },
-  glowReward: {
+  }),
+  glowReward: elevation('0px 8px 18px rgba(245,165,36,0.4)', {
     shadowColor: 'rgba(245,165,36,0.4)',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 1,
     shadowRadius: 18,
     elevation: 6,
-  },
+  }),
 } as const;
 
 export const surface = {

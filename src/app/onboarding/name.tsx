@@ -5,8 +5,8 @@
  * Benzersiz katılımcı kodunu sistem üretir.
  */
 
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { BackHandler, Platform, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { Button } from '@/components/ui/Button';
@@ -26,6 +26,16 @@ export default function NameScreen() {
   const [name, setName] = useState('');
   const [error, setError] = useState<string | undefined>(undefined);
   const [showExit, setShowExit] = useState(false);
+
+  // Android donanım geri tuşu da üstteki geri düğmesiyle aynı onayı versin.
+  useEffect(() => {
+    if (Platform.OS !== 'android') return undefined;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      setShowExit(true);
+      return true;
+    });
+    return () => subscription.remove();
+  }, []);
 
   const trimmed = name.trim();
   const valid = NAME_PATTERN.test(trimmed);

@@ -4,9 +4,9 @@
  * Panelden çıkış onay ister ("Çıkmak istiyor musunuz?").
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { BackHandler, Platform, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { GlassCard } from '@/components/glass/GlassCard';
@@ -53,6 +53,16 @@ export default function AdminDashboardScreen() {
   const results = useResults();
   const todayCount = useTodayCount();
   const [showExit, setShowExit] = useState(false);
+
+  // Android donanım geri tuşu panelden onaysız çıkarmasın.
+  useEffect(() => {
+    if (Platform.OS !== 'android') return undefined;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      setShowExit(true);
+      return true;
+    });
+    return () => subscription.remove();
+  }, []);
 
   const participants = results.length;
   const totalScore = results.reduce((sum, result) => sum + result.score, 0);

@@ -310,7 +310,8 @@ const styles = StyleSheet.create({
   chipButton: {
     borderRadius: radius.pill,
     paddingHorizontal: space.md,
-    paddingVertical: space.sm,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   dangerChip: {
     backgroundColor: palette.coralSoft,

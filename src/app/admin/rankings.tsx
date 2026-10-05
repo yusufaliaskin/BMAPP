@@ -129,43 +129,58 @@ export default function AdminRankingsScreen() {
               return (
                 <Reveal key={entry.resultId} delay={Math.min(100 + index * 30, 360)}>
                   <View style={[styles.row, isTop3 ? styles.topRow : glassSurface('subtle')]}>
-                    <View style={[styles.rankBubble, isTop3 ? styles.rankBubbleTop : null]}>
-                      <Text style={styles.rankText} maxFontSizeMultiplier={1.1}>
-                        {isTop3 ? MEDAL_EMOJI[entry.rank === 1 ? 'gold' : entry.rank === 2 ? 'silver' : 'bronze'] : `#${entry.rank}`}
-                      </Text>
+                    <View style={styles.rowMain}>
+                      <View style={[styles.rankBubble, isTop3 ? styles.rankBubbleTop : null]}>
+                        <Text style={styles.rankText} maxFontSizeMultiplier={1.1}>
+                          {isTop3 ? MEDAL_EMOJI[entry.rank === 1 ? 'gold' : entry.rank === 2 ? 'silver' : 'bronze'] : `#${entry.rank}`}
+                        </Text>
+                      </View>
+                      <AvatarBubble emoji={emojiForCode(entry.participantCode)} size={40} />
+                      <View style={styles.rowText}>
+                        <Text style={[type.bodyBold, { color: palette.ink }]} numberOfLines={2}>
+                          {entry.displayName}
+                        </Text>
+                        <Text style={[type.caption, { color: palette.inkFaint }]} numberOfLines={1}>
+                          {entry.participantCode} · {entry.grade}/{entry.section}
+                        </Text>
+                      </View>
+                      <View style={styles.rowScore}>
+                        <Text style={[type.h3, { color: palette.rewardDeep }]} numberOfLines={1}>
+                          ⭐ {entry.score}
+                        </Text>
+                        <Text style={[type.caption, { color: palette.inkFaint }]} numberOfLines={1}>
+                          ✅ {entry.correct} · ❌ {entry.wrong}
+                        </Text>
+                      </View>
                     </View>
-                    <AvatarBubble emoji={emojiForCode(entry.participantCode)} size={40} />
-                    <View style={styles.rowText}>
-                      <Text style={[type.bodyBold, { color: palette.ink }]} numberOfLines={1}>
-                        {entry.displayName}
-                      </Text>
-                      <Text style={[type.caption, { color: palette.inkFaint }]} numberOfLines={1}>
-                        {entry.participantCode} · {entry.grade}/{entry.section}
-                        {certificate ? ` · 🎓 ${certificate.number}` : ''}
-                      </Text>
+                    <View style={styles.rowMeta}>
+                      {certificate ? (
+                        <Text
+                          style={[type.caption, styles.certChip, { color: palette.primaryDeep }]}
+                          numberOfLines={1}
+                        >
+                          🎓 {certificate.number}
+                        </Text>
+                      ) : (
+                        <Text style={[type.caption, { color: palette.inkFaint }]}>
+                          sertifika bekliyor
+                        </Text>
+                      )}
+                      <PressableScale
+                        accessibilityRole="button"
+                        accessibilityLabel={`${entry.displayName} kaydını sil`}
+                        haptic="light"
+                        onPress={() => {
+                          setConfirmId(entry.resultId);
+                          setReport(null);
+                        }}
+                        style={styles.trashButton}
+                      >
+                        <Text style={styles.trashIcon} maxFontSizeMultiplier={1.1}>
+                          🗑️
+                        </Text>
+                      </PressableScale>
                     </View>
-                    <View style={styles.rowScore}>
-                      <Text style={[type.h3, { color: palette.rewardDeep }]}>
-                        ⭐ {entry.score}
-                      </Text>
-                      <Text style={[type.caption, { color: palette.inkFaint }]}>
-                        ✅ {entry.correct} · ❌ {entry.wrong}
-                      </Text>
-                    </View>
-                    <PressableScale
-                      accessibilityRole="button"
-                      accessibilityLabel={`${entry.displayName} kaydını sil`}
-                      haptic="light"
-                      onPress={() => {
-                        setConfirmId(entry.resultId);
-                        setReport(null);
-                      }}
-                      style={styles.trashButton}
-                    >
-                      <Text style={styles.trashIcon} maxFontSizeMultiplier={1.1}>
-                        🗑️
-                      </Text>
-                    </PressableScale>
                   </View>
                   {confirmId === entry.resultId ? (
                     <View style={styles.confirmRow}>
@@ -217,13 +232,26 @@ const styles = StyleSheet.create({
     gap: space.sm,
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.md,
+    gap: space.sm,
     borderRadius: radius.lg,
     padding: space.md,
     borderWidth: 1,
     borderColor: 'transparent',
+  },
+  rowMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+  },
+  rowMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: space.sm,
+    marginLeft: space.xs,
+  },
+  certChip: {
+    flexShrink: 1,
   },
   topRow: {
     backgroundColor: palette.rewardSoft,
@@ -253,8 +281,8 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   trashButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: radius.pill,
     backgroundColor: palette.coralSoft,
     alignItems: 'center',

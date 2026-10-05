@@ -140,22 +140,18 @@ export default function AdminParticipantsScreen() {
                     <View style={styles.row}>
                       <AvatarBubble emoji={emojiForCode(result.participantCode)} size={44} />
                       <View style={styles.rowText}>
-                        <Text style={[type.bodyBold, { color: palette.ink }]} numberOfLines={1}>
+                        <Text style={[type.bodyBold, { color: palette.ink }]} numberOfLines={2}>
                           {result.displayName}
                         </Text>
-                        <Text style={[type.caption, { color: palette.inkFaint }]} numberOfLines={1}>
+                        <Text style={[type.caption, { color: palette.inkFaint }]} numberOfLines={2}>
                           {result.participantCode} · {result.grade}/
-                          {result.classId.replace(/^\d/, '')}
-                        </Text>
-                      </View>
-                      <View style={styles.rowRight}>
-                        <Text style={[type.h3, { color: palette.rewardDeep }]}>
-                          ⭐ {result.score}
-                        </Text>
-                        <Text style={[type.caption, { color: palette.inkFaint }]}>
+                          {result.classId.replace(/^\d/, '')} ·{' '}
                           {formatDateTimeTR(result.completedAt)}
                         </Text>
                       </View>
+                      <Text style={[type.h3, { color: palette.rewardDeep }]} numberOfLines={1}>
+                        ⭐ {result.score}
+                      </Text>
                       <Ionicons name="chevron-forward" size={18} color={palette.inkFaint} />
                     </View>
                   </GlassCard>
@@ -193,9 +189,6 @@ const styles = StyleSheet.create({
   rowText: {
     flex: 1,
     gap: 2,
-  },
-  rowRight: {
-    alignItems: 'flex-end',
-    gap: 2,
+    minWidth: 0,
   },
 });
