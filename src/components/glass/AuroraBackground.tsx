@@ -6,6 +6,7 @@
 
 import { useEffect, type RefObject } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { BlurTargetView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   Easing,
@@ -81,8 +82,13 @@ export function AuroraBackground({
 }) {
   const reduced = useReducedMotion();
 
+  // Kök, expo-blur'un BlurTargetView'i olmak ZORUNDA: Android'de blurTarget
+  // ancak ExpoBlurTargetView tipine cast edilebilir (sade View verilirse
+  // "Cannot set prop 'blurTargetId'" hatası basar ve blur çizilmez).
+  // Dokunma geçirgenliği STİL ile verilir: react-native-web prop biçimini
+  // deprecated sayıyor, RN çekirdeği ise stili uyarısız kabul ediyor.
   return (
-    <View ref={targetRef} style={[StyleSheet.absoluteFill, styles.root, styles.noEvents]}>
+    <BlurTargetView ref={targetRef} style={[StyleSheet.absoluteFill, styles.root, styles.noEvents]}>
       <LinearGradient
         colors={['#F7FBFF', '#EEF4FF', '#F7F3FF']}
         style={StyleSheet.absoluteFill}
@@ -123,7 +129,7 @@ export function AuroraBackground({
         opacity={0.5}
         reduced={reduced}
       />
-    </View>
+    </BlurTargetView>
   );
 }
 
