@@ -110,7 +110,7 @@ export default function AdminAdminsScreen() {
         ) : null}
 
         <Reveal>
-          <GlassCard style={styles.card}>
+          <GlassCard contentStyle={styles.card}>
             <Text style={[type.h3, { color: palette.ink }]}>🧑‍💼 Yeni Yönetici</Text>
             <Text style={[type.caption, { color: palette.inkFaint }]}>
               Kiosk girişinde isim alanına “admin” yazılır ve bu kişinin PIN’i girilir.
@@ -155,7 +155,7 @@ export default function AdminAdminsScreen() {
         </Reveal>
 
         <Reveal delay={80}>
-          <GlassCard style={styles.card}>
+          <GlassCard contentStyle={styles.card}>
             <Text style={[type.h3, { color: palette.ink }]}>👥 Kayıtlı Yöneticiler</Text>
             {admins.map((admin) => {
               const editing = pinEditId === admin.id;

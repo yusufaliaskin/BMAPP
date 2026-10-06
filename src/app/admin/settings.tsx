@@ -109,7 +109,9 @@ export default function AdminSettingsScreen() {
             <GlassCard padded={false}>
               <View style={styles.linkRow}>
                 <View style={styles.linkIcon}>
-                  <Ionicons name="person-circle" size={22} color={palette.primary} />
+                  <Text style={styles.linkIconText} maxFontSizeMultiplier={1.1}>
+                    🧑‍💼
+                  </Text>
                 </View>
                 <View style={styles.linkText}>
                   <Text style={[type.bodyBold, { color: palette.ink }]}>Yöneticiler</Text>
@@ -124,7 +126,7 @@ export default function AdminSettingsScreen() {
         </Reveal>
 
         <Reveal delay={50}>
-          <GlassCard style={styles.card}>
+          <GlassCard contentStyle={styles.card}>
             <Text style={[type.h3, { color: palette.ink }]}>📚 Kademe Ayarları</Text>
             <Text style={[type.caption, { color: palette.inkFaint }]}>
               Soru sayısı ve zorluk sınıf seviyesine göre buradan yönetilir.
@@ -159,7 +161,7 @@ export default function AdminSettingsScreen() {
         </Reveal>
 
         <Reveal delay={100}>
-          <GlassCard style={styles.card}>
+          <GlassCard contentStyle={styles.card}>
             <Text style={[type.h3, { color: palette.ink }]}>🎓 Sertifika Başlıkları</Text>
             <TextField
               label="Sertifika ön eki"
@@ -206,7 +208,7 @@ export default function AdminSettingsScreen() {
         </Reveal>
 
         <Reveal delay={150}>
-          <GlassCard style={styles.card}>
+          <GlassCard contentStyle={styles.card}>
             <Text style={[type.h3, { color: palette.ink }]}>💾 Yedekleme ve Dışa Aktarma</Text>
             <Text style={[type.caption, { color: palette.inkSoft }]}>
               Kayıtlar yalnızca bu cihazda tutulur. Cihaz değişir veya uygulama silinirse
@@ -304,6 +306,9 @@ const styles = StyleSheet.create({
     backgroundColor: palette.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  linkIconText: {
+    fontSize: 22,
   },
   linkText: {
     flex: 1,

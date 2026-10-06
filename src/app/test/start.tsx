@@ -58,6 +58,9 @@ export default function TestStartScreen() {
     <Screen title="Test" onBack={() => router.back()}>
       <View style={styles.body}>
         <Reveal style={styles.hero}>
+          <Text style={styles.emoji} maxFontSizeMultiplier={1.1}>
+            🎯
+          </Text>
           <Text style={[type.h1, styles.center, { color: palette.ink }]}>Hazır mısın?</Text>
           <Text style={[type.bodySemi, styles.center, { color: palette.inkSoft }]}>
             {name} · {schoolClass.grade}/{schoolClass.section} · {DIFFICULTY_LABEL[settings.difficulty]}
@@ -68,10 +71,12 @@ export default function TestStartScreen() {
           <GlassCard style={styles.infoCard}>
             <View style={styles.infoRow}>
               <View style={styles.infoItem}>
+                <Text style={styles.infoEmoji}>📝</Text>
                 <Text style={[type.h2, { color: palette.ink }]}>{plan.questions.length} soru</Text>
               </View>
               <View style={styles.divider} />
               <View style={styles.infoItem}>
+                <Text style={styles.infoEmoji}>⭐</Text>
                 <Text style={[type.h2, { color: palette.ink }]}>{plan.totalPoints} puan</Text>
               </View>
             </View>
@@ -101,6 +106,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: space.sm,
   },
+  emoji: {
+    fontSize: 64,
+    textAlign: 'center',
+  },
   center: {
     textAlign: 'center',
   },
@@ -113,6 +122,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     gap: space.sm,
+  },
+  infoEmoji: {
+    fontSize: 30,
   },
   divider: {
     width: 1,

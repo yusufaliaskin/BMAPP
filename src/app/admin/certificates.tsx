@@ -7,7 +7,6 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 import { GlassCard } from '@/components/glass/GlassCard';
 import { PressableScale } from '@/components/ui/PressableScale';
@@ -15,7 +14,7 @@ import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { EmptyState } from '@/components/ui/states';
 import { useCertificates, useConfig } from '@/data/hooks';
-import { certificateKindLabel, type Certificate } from '@/domain/models';
+import { MEDAL_EMOJI, MEDAL_LABEL } from '@/domain/models';
 import { createCertificatePdf } from '@/lib/certificate-pdf';
 import { formatDateTR } from '@/lib/format';
 import { glassSurface, medal, palette, radius, space, type } from '@/theme';
@@ -25,9 +24,6 @@ const MEDAL_TONE: Record<string, string> = {
   silver: medal.silver,
   bronze: medal.bronze,
 };
-
-const toneOf = (certificate: Certificate): string =>
-  certificate.medal ? MEDAL_TONE[certificate.medal] : palette.primary;
 
 export default function AdminCertificatesScreen() {
   const router = useRouter();
@@ -79,7 +75,7 @@ export default function AdminCertificatesScreen() {
                 <GlassCard padded={false}>
                   <PressableScale
                     accessibilityRole="button"
-                    accessibilityLabel={`${certificate.number} ${certificateKindLabel(certificate)} belgesini önizle`}
+                    accessibilityLabel={`${certificate.number} ${certificate.medal ? MEDAL_LABEL[certificate.medal] : 'Katılım'} belgesini önizle`}
                     haptic="light"
                     onPress={() =>
                       router.push(`/admin/certificate?participantCode=${certificate.participantCode}`)
@@ -87,26 +83,27 @@ export default function AdminCertificatesScreen() {
                   >
                     <View style={styles.row}>
                       <View
-                        style={[styles.medalBubble, { backgroundColor: `${toneOf(certificate)}22` }]}
+                        style={[
+                          styles.medalBubble,
+                          { backgroundColor: `${MEDAL_TONE[certificate.medal] ?? palette.primary}22` },
+                        ]}
                       >
-                        <Ionicons
-                          name={certificate.medal ? 'trophy' : 'document-text'}
-                          size={22}
-                          color={toneOf(certificate)}
-                        />
+                        <Text style={styles.medalEmoji} maxFontSizeMultiplier={1.1}>
+                          {MEDAL_EMOJI[certificate.medal] ?? '🎓'}
+                        </Text>
                       </View>
                       <View style={styles.mid}>
                         <Text style={[type.bodyBold, { color: palette.ink }]} numberOfLines={2}>
                           {certificate.displayName}
                         </Text>
                         <Text style={[type.caption, { color: palette.inkFaint }]} numberOfLines={2}>
-                          {certificateKindLabel(certificate)} · {certificate.number} ·{' '}
+                          {certificate.medal ? MEDAL_LABEL[certificate.medal] : 'Katılım'} · {certificate.number} ·{' '}
                           {certificate.grade}/{certificate.section} ·{' '}
                           {formatDateTR(certificate.issuedAt)}
                         </Text>
                       </View>
                       <Text style={[type.h3, { color: palette.rewardDeep }]} numberOfLines={1}>
-                        {certificate.score} puan
+                        ⭐ {certificate.score}
                       </Text>
                     </View>
                   </PressableScale>

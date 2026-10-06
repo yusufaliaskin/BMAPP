@@ -55,8 +55,3 @@ export function isSingleEmoji(value: string): boolean {
   return emojiCount(value) === 1;
 }
 
-/** Metnin başındaki emojiyi atar (ör. "⏸️ Mola veririm" → "Mola veririm"). */
-export function stripLeadingEmoji(value: string): string {
-  const space = value.indexOf(' ');
-  return (space > 0 ? value.slice(space + 1) : value).trim();
-}

@@ -95,19 +95,19 @@ export default function AdminDashboardScreen() {
 
         <Reveal style={styles.statsGrid}>
           <View style={styles.statsRow}>
-            <StatCard icon="people" value={participants} label="Toplam katılımcı" accent="sky" />
-            <StatCard icon="calendar" value={todayCount} label="Bugünkü katılım" accent="mint" />
+            <StatCard emoji="👥" value={participants} label="Toplam katılımcı" accent="sky" />
+            <StatCard emoji="📅" value={todayCount} label="Bugünkü katılım" accent="mint" />
           </View>
           <View style={styles.statsRow}>
-            <StatCard icon="stats-chart" value={averageScore} label="Ortalama puan" accent="lavender" />
-            <StatCard icon="star" value={topScore} label="En yüksek puan" accent="amber" />
+            <StatCard emoji="📊" value={averageScore} label="Ortalama puan" accent="lavender" />
+            <StatCard emoji="⭐" value={topScore} label="En yüksek puan" accent="amber" />
           </View>
         </Reveal>
 
         <Reveal delay={80}>
           <View style={styles.section}>
             <View style={styles.sectionHead}>
-              <Text style={[type.h3, { color: palette.ink }]}>Sınıf Seviyesi Katılımı</Text>
+              <Text style={[type.h3, { color: palette.ink }]}>🏫 Sınıf Seviyesi Katılımı</Text>
               <Text style={[type.caption, { color: palette.inkFaint }]}>
                 Karta dokun → o seviyenin katılımcıları
               </Text>
@@ -129,49 +129,49 @@ export default function AdminDashboardScreen() {
 
         <Reveal delay={140} style={styles.links}>
           <AdminLink
-            icon="people"
+            emoji="🧑‍🎓"
             label="Katılımcılar"
             detail="Liste, filtre, arama ve cevap detayı"
             onPress={() => router.push('/admin/participants')}
           />
           <AdminLink
-            icon="school"
+            emoji="🏫"
             label="Sınıflar"
             detail="Şube istatistikleri"
             onPress={() => router.push('/admin/classes')}
           />
           <AdminLink
-            icon="trophy"
+            emoji="🏆"
             label="Sıralamalar"
             detail="İlk 3 ve sertifika üretimi"
             onPress={() => router.push('/admin/rankings')}
           />
           <AdminLink
-            icon="stats-chart"
+            emoji="📈"
             label="Test Analizi"
             detail="Ortalamalar, zor sorular"
             onPress={() => router.push('/admin/analytics')}
           />
           <AdminLink
-            icon="library"
+            emoji="📚"
             label="Sorular"
             detail="Soru bankası yönetimi"
             onPress={() => router.push('/admin/questions')}
           />
           <AdminLink
-            icon="ribbon"
+            emoji="🎓"
             label="Sertifikalar"
             detail="Derece ve katılım belgeleri"
             onPress={() => router.push('/admin/certificates')}
           />
           <AdminLink
-            icon="person-circle"
+            emoji="🧑‍💼"
             label="Yöneticiler"
             detail="Hesap ekleme, PIN belirleme, silme"
             onPress={() => router.push('/admin/admins')}
           />
           <AdminLink
-            icon="settings"
+            emoji="⚙️"
             label="Ayarlar"
             detail="Soru sayısı, belge başlıkları"
             onPress={() => router.push('/admin/settings')}
@@ -245,13 +245,13 @@ function GradeAttendanceCard({
 }
 
 interface AdminLinkProps {
-  icon: keyof typeof Ionicons.glyphMap;
+  emoji: string;
   label: string;
   detail: string;
   onPress: () => void;
 }
 
-function AdminLink({ icon, label, detail, onPress }: AdminLinkProps) {
+function AdminLink({ emoji, label, detail, onPress }: AdminLinkProps) {
   return (
     <PressableScale
       accessibilityRole="button"
@@ -262,7 +262,9 @@ function AdminLink({ icon, label, detail, onPress }: AdminLinkProps) {
       <GlassCard padded={false}>
         <View style={styles.linkRow}>
           <View style={[styles.linkIcon, glassSurface('strong')]}>
-            <Ionicons name={icon} size={22} color={palette.primary} />
+            <Text style={styles.linkIconText} maxFontSizeMultiplier={1.1}>
+              {emoji}
+            </Text>
           </View>
           <View style={styles.linkText}>
             <Text style={[type.bodyBold, { color: palette.ink }]}>{label}</Text>
@@ -347,6 +349,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  linkIconText: {
+    fontSize: 22,
   },
   linkText: {
     flex: 1,

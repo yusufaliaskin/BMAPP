@@ -7,7 +7,6 @@
 import type {
   AdminUser,
   AppConfig,
-  Certificate,
   Grade,
   GradeSettings,
   Medal,
@@ -16,7 +15,7 @@ import type {
 } from '../domain/models';
 import type { AnswerInput } from '../domain/engine/scoring';
 import { gradeTest } from '../domain/engine/scoring';
-import { ensureCertificateForResult, issueTop3 } from '../domain/engine/certificates';
+import { issueTop3 } from '../domain/engine/certificates';
 import { rankForGrade } from '../domain/engine/ranking';
 import { flushPersist, getState, updateData } from './db';
 import { makeId, makeSalt, hashPin } from '../lib/pin';
@@ -95,33 +94,6 @@ export function issueCertificatesForGrade(grade: Grade): IssueOutcomeSummary {
     createdMedals: outcome.created.flatMap((c) => (c.medal ? [c.medal] : [])),
     updatedCount: outcome.updated.length,
   };
-}
-
-export interface CertificateRequestOutcome {
-  certificate: Certificate;
-  created: boolean;
-}
-
-/**
- * Katılımcı sonuç ekranından belgesini ister: belge varsa aynen döner,
- * yoksa katılım belgesi üretilir ve diske yazılır. Sonuç bulunamazsa null.
- */
-export function requestCertificate(resultId: string): CertificateRequestOutcome | null {
-  const { data } = getState();
-  const result = data.results.find((item) => item.id === resultId);
-  if (!result) return null;
-  const outcome = ensureCertificateForResult(
-    result,
-    data.certificates,
-    data.config,
-    makeId,
-    new Date().toISOString(),
-  );
-  if (outcome.created) {
-    updateData((current) => ({ ...current, certificates: outcome.certificates }));
-    void flushPersist();
-  }
-  return { certificate: outcome.certificate, created: outcome.created };
 }
 
 export function updateConfig(partial: Partial<AppConfig>): void {

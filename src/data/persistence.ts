@@ -62,21 +62,6 @@ function migrateClasses(state: DBState): boolean {
   return changed;
 }
 
-/**
- * Eski belgelerde `kind` alanı yoktur; hepsi derece (madalya) belgesidir.
- * Katılım belgeleri sonradan eklendiği için bu alan yerinde tamamlanır.
- */
-function migrateCertificates(state: DBState): boolean {
-  let changed = false;
-  for (const certificate of state.data.certificates ?? []) {
-    if (!certificate.kind) {
-      certificate.kind = 'medal';
-      changed = true;
-    }
-  }
-  return changed;
-}
-
 export async function loadState(): Promise<LoadResult | null> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
@@ -87,7 +72,6 @@ export async function loadState(): Promise<LoadResult | null> {
     if (!parsed.data) return null;
     const migratedAdmins = migrateAdmins(parsed);
     const migratedClasses = migrateClasses(parsed);
-    const migratedCertificates = migrateCertificates(parsed);
     const contentSync = syncSeedQuestions(
       parsed.data.questions ?? [],
       parsed.data.results ?? [],
@@ -96,7 +80,6 @@ export async function loadState(): Promise<LoadResult | null> {
     const migrated =
       migratedAdmins ||
       migratedClasses ||
-      migratedCertificates ||
       contentSync.syncedQuestions > 0 ||
       contentSync.remappedAnswers > 0 ||
       migratedTitles;

@@ -37,7 +37,7 @@ export function ConfirmDialog({
 
   return (
     <View style={styles.overlay}>
-      <GlassCard level="strong" glint style={styles.card}>
+      <GlassCard level="strong" glint style={styles.card} contentStyle={styles.cardContent}>
         <Text style={[type.h3, styles.center, { color: palette.ink }]}>{title}</Text>
         {message ? (
           <Text style={[type.body, styles.center, { color: palette.inkSoft }]}>{message}</Text>
@@ -65,8 +65,10 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 400,
-    gap: space.md,
     backgroundColor: palette.white,
+  },
+  cardContent: {
+    gap: space.md,
   },
   center: {
     textAlign: 'center',

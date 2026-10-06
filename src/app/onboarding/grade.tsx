@@ -1,7 +1,6 @@
 /**
- * Sınıf/şube seçimi — tek alan (ülke seçici mantığı): alana dokununca
- * sınıf seviyeleri ve şubeler gruplu bir listede açılır; seçim anında teste geçilir.
- * Ekranı şubelerle doldurmuyoruz; tek alan + tek liste yeterli.
+ * Sınıf/şube seçimi — iki adım: önce sınıf (1-4), sonra şube (A-Z).
+ * Üst alan seçilmeden alt alan açılmaz; şube seçilince doğrudan teste geçilir.
  */
 
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
@@ -14,13 +13,15 @@ import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { SelectField, type SelectOption } from '@/components/ui/SelectField';
 import { useClasses } from '@/data/hooks';
+import { GRADES, type Grade } from '@/domain/models';
 import { palette, space, type } from '@/theme';
 
 export default function GradeScreen() {
   const router = useRouter();
   const { name } = useLocalSearchParams<{ name?: string }>();
   const classes = useClasses();
-  const [classId, setClassId] = useState<string | null>(null);
+  const [grade, setGrade] = useState<Grade | null>(null);
+  const [section, setSection] = useState<string | null>(null);
   const [showExit, setShowExit] = useState(false);
 
   // Android donanım geri tuşu da seçimden sessizce kaçırmasın: onay sor.
@@ -33,48 +34,70 @@ export default function GradeScreen() {
     return () => subscription.remove();
   }, []);
 
-  const options = useMemo<SelectOption[]>(
+  const gradeOptions = useMemo<SelectOption[]>(
+    () => GRADES.map((item) => ({ value: String(item), label: `${item}. Sınıf` })),
+    [],
+  );
+
+  const sectionOptions = useMemo<SelectOption[]>(
     () =>
-      [...classes]
-        .filter((item) => item.isActive)
-        .sort((a, b) => a.grade - b.grade || a.section.localeCompare(b.section))
-        .map((item) => ({
-          value: item.id,
-          label: `${item.grade}/${item.section}`,
-          group: `${item.grade}. Sınıf`,
-        })),
-    [classes],
+      grade === null
+        ? []
+        : classes
+            .filter((item) => item.grade === grade && item.isActive)
+            .sort((a, b) => a.section.localeCompare(b.section))
+            .map((item) => ({ value: item.section, label: item.section })),
+    [classes, grade],
   );
 
   if (!name) return <Redirect href="/onboarding/welcome" />;
 
-  const pick = (nextId: string) => {
-    setClassId(nextId);
+  const pickGrade = (value: string) => {
+    setGrade(Number(value) as Grade);
+    setSection(null);
+  };
+
+  const pickSection = (value: string) => {
+    setSection(value);
     if (Platform.OS !== 'web') {
       void Haptics.selectionAsync().catch(() => undefined);
     }
-    router.push({ pathname: '/test/start', params: { name, classId: nextId } });
+    if (grade === null) return;
+    router.push({ pathname: '/test/start', params: { name, classId: `${grade}${value}` } });
   };
 
   return (
     <Screen title="" onBack={() => setShowExit(true)}>
       <View style={styles.body}>
         <Reveal style={styles.header}>
-          <Text style={[type.h1, styles.center, { color: palette.ink }]}>Hangi sınıftasın?</Text>
+          <Text style={[type.h1, styles.center, { color: palette.ink }]}>
+            Hangi sınıftasın? 🏫
+          </Text>
           <Text style={[type.bodySemi, styles.center, { color: palette.inkSoft }]}>
-            Sınıfını ve şubeni seç, hemen başlıyoruz.
+            Önce sınıfını, sonra şubeni seç.
           </Text>
         </Reveal>
 
-        <Reveal delay={80}>
+        <Reveal delay={80} style={styles.fields}>
           <SelectField
-            label="Sınıf ve şube"
+            label="Sınıf"
             placeholder="Sınıf seç"
-            value={classId}
-            options={options}
-            onChange={pick}
+            value={grade === null ? null : String(grade)}
+            options={gradeOptions}
+            onChange={pickGrade}
             sheetTitle="Sınıfını seç"
-            accessibilityHint="Sınıf ve şube listesini açar; seçince test başlar"
+            accessibilityHint="1-4 arası sınıf listesini açar"
+          />
+          <SelectField
+            label="Şube"
+            placeholder="Şube seç"
+            value={section}
+            options={sectionOptions}
+            onChange={pickSection}
+            sheetTitle="Şubeni seç"
+            disabled={grade === null}
+            disabledHint="Önce sınıfını seç."
+            accessibilityHint="Şube listesini açar; seçince test başlar"
           />
         </Reveal>
       </View>
@@ -100,6 +123,9 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: space.xs,
+  },
+  fields: {
+    gap: space.lg,
   },
   center: {
     textAlign: 'center',

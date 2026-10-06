@@ -12,7 +12,11 @@ import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { palette, space, type } from '@/theme';
 
-const NOTES = ['Kısa test', 'Puanını gör', 'Sertifikanı al'];
+const NOTES = [
+  { emoji: '📝', label: 'Kısa test' },
+  { emoji: '⭐', label: 'Puanını gör' },
+  { emoji: '🏆', label: 'İlk 3e sertifika' },
+];
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -35,9 +39,12 @@ export default function WelcomeScreen() {
         </Reveal>
         <Reveal delay={170} style={styles.notes}>
           {NOTES.map((note) => (
-            <GlassCard key={note} padded={false} style={styles.note}>
+            <GlassCard key={note.label} padded={false} style={styles.note}>
               <View style={styles.noteInner}>
-                <Text style={[type.caption, { color: palette.ink }]}>{note}</Text>
+                <Text style={styles.noteEmoji} maxFontSizeMultiplier={1.1}>
+                  {note.emoji}
+                </Text>
+                <Text style={[type.caption, { color: palette.ink }]}>{note.label}</Text>
               </View>
             </GlassCard>
           ))}
@@ -85,9 +92,14 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   noteInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.xs,
     paddingHorizontal: space.lg,
     minHeight: 44,
-    justifyContent: 'center',
+  },
+  noteEmoji: {
+    fontSize: 16,
   },
   footer: {
     gap: space.md,

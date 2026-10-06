@@ -38,6 +38,10 @@ interface SelectFieldProps {
   sheetTitle?: string;
   hint?: string;
   error?: string;
+  /** Kapalıysa alan dokunulamaz (ör. önce sınıf seçilmeden şube). */
+  disabled?: boolean;
+  /** Kapalıyken gösterilen kısa açıklama. */
+  disabledHint?: string;
   /** Alanın üstünde ek içerik (ör. simge). */
   leading?: ReactNode;
   accessibilityHint?: string;
@@ -52,6 +56,8 @@ export function SelectField({
   sheetTitle,
   hint,
   error,
+  disabled = false,
+  disabledHint,
   accessibilityHint,
 }: SelectFieldProps) {
   const [open, setOpen] = useState(false);
@@ -71,18 +77,24 @@ export function SelectField({
     onChange(next);
   };
 
+  const helper = error ?? (disabled ? disabledHint : hint);
+
   return (
     <View style={styles.wrap}>
       <Text style={[type.label, { color: palette.inkSoft }]}>{label}</Text>
       <PressableScale
         accessibilityRole="button"
+        accessibilityState={{ disabled }}
         accessibilityLabel={`${label}: ${selected ? selected.label : placeholder}`}
-        accessibilityHint={accessibilityHint ?? 'Seçenek listesini açar'}
+        accessibilityHint={
+          disabled ? disabledHint : (accessibilityHint ?? 'Seçenek listesini açar')
+        }
         haptic="light"
+        disabled={disabled}
         onPress={() => setOpen(true)}
       >
         <GlassCard padded={false} outline={error ? palette.coral : undefined}>
-          <View style={styles.field}>
+          <View style={[styles.field, disabled ? styles.fieldDisabled : null]}>
             <Text
               style={[
                 type.h3,
@@ -93,16 +105,21 @@ export function SelectField({
             >
               {selected ? selected.label : placeholder}
             </Text>
-            <Ionicons name="chevron-down" size={22} color={palette.inkSoft} />
+            <Ionicons
+              name="chevron-down"
+              size={22}
+              color={disabled ? palette.inkFaint : palette.inkSoft}
+            />
           </View>
         </GlassCard>
       </PressableScale>
-      {error ? (
-        <Text accessibilityLiveRegion="polite" style={[type.caption, { color: palette.coral }]}>
-          {error}
+      {helper ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          style={[type.caption, { color: error ? palette.coral : palette.inkFaint }]}
+        >
+          {helper}
         </Text>
-      ) : hint ? (
-        <Text style={[type.caption, { color: palette.inkFaint }]}>{hint}</Text>
       ) : null}
 
       <Modal
@@ -192,6 +209,9 @@ const styles = StyleSheet.create({
   },
   fieldText: {
     flex: 1,
+  },
+  fieldDisabled: {
+    opacity: 0.5,
   },
   scrim: {
     flex: 1,

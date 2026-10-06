@@ -143,7 +143,7 @@ export default function AdminQuestionEditScreen() {
     <Screen title={isNew ? 'Yeni Soru' : 'Soruyu Düzenle'} onBack={() => router.back()} scroll keyboard>
       <View style={styles.container}>
         <Reveal>
-          <GlassCard style={styles.card}>
+          <GlassCard contentStyle={styles.card}>
             <Text style={[type.h3, { color: palette.ink }]}>Sınıf</Text>
             <SegmentedControl
               accessibilityLabel="Sınıf seçimi"
@@ -173,7 +173,7 @@ export default function AdminQuestionEditScreen() {
         </Reveal>
 
         <Reveal delay={60}>
-          <GlassCard style={styles.card}>
+          <GlassCard contentStyle={styles.card}>
             <TextField
               label="Görsel (tek emoji)"
               value={draft.visual}
@@ -196,7 +196,7 @@ export default function AdminQuestionEditScreen() {
         </Reveal>
 
         <Reveal delay={120}>
-          <GlassCard style={styles.card}>
+          <GlassCard contentStyle={styles.card}>
             <Text style={[type.h3, { color: palette.ink }]}>Seçenekler</Text>
             {draft.options.map((option, index) => (
               <View key={index} style={styles.optionRow}>
@@ -247,7 +247,7 @@ export default function AdminQuestionEditScreen() {
         </Reveal>
 
         <Reveal delay={160}>
-          <GlassCard style={styles.card}>
+          <GlassCard contentStyle={styles.card}>
             <TextField
               label="Kısa açıklama (gerçek bilgi)"
               value={draft.fact}

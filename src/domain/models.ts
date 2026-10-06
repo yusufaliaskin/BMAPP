@@ -12,9 +12,6 @@ export type Difficulty = 'easy' | 'easy-medium' | 'medium' | 'medium-hard';
 /** Sertifika sınıfı — ilk üç derece (§19). */
 export type Medal = 'gold' | 'silver' | 'bronze';
 
-/** Belge türü: 'medal' = ilk üç (altın/gümüş/bronz), 'participation' = katılım belgesi. */
-export type CertificateKind = 'medal' | 'participation';
-
 export interface Topic {
   id: string;
   name: string;
@@ -89,10 +86,8 @@ export interface Certificate {
   displayName: string;
   grade: Grade;
   section: string;
-  /** Derece belgesinde 1|2|3; katılım belgesinde null. */
-  rank: 1 | 2 | 3 | null;
-  medal: Medal | null;
-  kind: CertificateKind;
+  rank: 1 | 2 | 3;
+  medal: Medal;
   score: number;
   period: string;
   issuedAt: string;
@@ -185,9 +180,3 @@ export const MEDAL_EMOJI: Record<Medal, string> = {
   bronze: '🥉',
 };
 
-/** Belge etiketi: derece belgesinde madalya adı, katılım belgesinde "Katılım". */
-export function certificateKindLabel(certificate: Certificate): string {
-  return certificate.kind === 'medal' && certificate.medal
-    ? MEDAL_LABEL[certificate.medal]
-    : 'Katılım';
-}

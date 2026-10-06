@@ -26,7 +26,6 @@ import { saveTestResult } from '@/data/actions';
 import { flushPersist } from '@/data/db';
 import { gradeTest, type AnswerInput } from '@/domain/engine/scoring';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
-import { stripLeadingEmoji } from '@/lib/emoji';
 import { palette, radius, space, type } from '@/theme';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
@@ -235,7 +234,7 @@ export default function QuestionScreen() {
             state={feedback}
             fact={question.fact}
             points={question.points}
-            correctLabel={stripLeadingEmoji(question.options[question.correctIndex])}
+            correctLabel={question.options[question.correctIndex]}
             onContinue={next}
           />
         </View>

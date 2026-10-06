@@ -1,8 +1,8 @@
 /**
- * FeedbackSheet — soru geri bildirimi, sade sürüm.
- * Doğru: "Doğru cevap" + "+N puan" + tek cümle açıklama.
- * Yanlış: "Bir daha düşünelim" + "Doğru cevap: …" — uzun metin ve emoji yok.
- * Giriş yumuşak (~240ms), çıkış daha hızlı — motion kuralı.
+ * FeedbackSheet — soru geri bildirimi.
+ * Doğru: 🎉 "Doğru cevap" + "+N puan" + tek cümle açıklama.
+ * Yanlış: 💡 "Bir daha düşünelim" + "Doğru cevap: …" (seçenek, emojiyle birlikte).
+ * Bloklar arası boşluk ferah (gap lg); giriş yumuşak, çıkış hızlı — motion kuralı.
  */
 
 import { useEffect } from 'react';
@@ -46,25 +46,32 @@ export function FeedbackSheet({ state, fact, points, correctLabel, onContinue }:
 
   return (
     <Animated.View style={cardStyle}>
-      <GlassCard level="strong" style={[styles.card, correct ? styles.correctCard : styles.wrongCard]}>
+      <GlassCard
+        level="strong"
+        outline={correct ? palette.success : palette.reward}
+        contentStyle={styles.card}
+      >
         <View style={styles.head}>
-          <Text style={[type.h3, { color: correct ? palette.success : palette.ink }]}>
-            {correct ? 'Doğru cevap' : 'Bir daha düşünelim'}
+          <Text style={styles.emoji} maxFontSizeMultiplier={1.1}>
+            {correct ? '🎉' : '💡'}
           </Text>
-          {correct ? (
-            <View style={styles.pointsChip}>
-              <Text style={[type.label, { color: palette.rewardDeep }]}>+{points} puan</Text>
-            </View>
-          ) : null}
+          <View style={styles.headText}>
+            <Text style={[type.h3, { color: correct ? palette.success : palette.ink }]}>
+              {correct ? 'Doğru cevap' : 'Bir daha düşünelim'}
+            </Text>
+            {correct ? (
+              <View style={styles.pointsChip}>
+                <Text style={[type.label, { color: palette.rewardDeep }]}>+{points} puan ⭐</Text>
+              </View>
+            ) : correctLabel ? (
+              <Text style={[type.bodySemi, { color: palette.inkSoft }]} numberOfLines={2}>
+                Doğru cevap: {correctLabel}
+              </Text>
+            ) : null}
+          </View>
         </View>
 
-        {correct ? (
-          <Text style={[type.body, { color: palette.inkSoft }]}>{fact}</Text>
-        ) : correctLabel ? (
-          <Text style={[type.bodySemi, { color: palette.inkSoft }]} numberOfLines={2}>
-            Doğru cevap: {correctLabel}
-          </Text>
-        ) : null}
+        {correct ? <Text style={[type.body, { color: palette.inkSoft }]}>{fact}</Text> : null}
 
         <Button
           label="DEVAM"
@@ -79,19 +86,20 @@ export function FeedbackSheet({ state, fact, points, correctLabel, onContinue }:
 
 const styles = StyleSheet.create({
   card: {
-    gap: space.md,
-  },
-  correctCard: {
-    borderColor: palette.success,
-  },
-  wrongCard: {
-    borderColor: palette.reward,
+    gap: space.lg,
   },
   head: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    gap: space.md,
+  },
+  headText: {
+    flex: 1,
     gap: space.sm,
-    flexWrap: 'wrap',
+    alignItems: 'flex-start',
+  },
+  emoji: {
+    fontSize: 34,
   },
   pointsChip: {
     backgroundColor: palette.rewardSoft,

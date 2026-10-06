@@ -28,6 +28,11 @@ class BlurBoundary extends Component<{ children: ReactNode }, { failed: boolean 
 interface GlassCardProps {
   children?: ReactNode;
   style?: StyleProp<ViewStyle>;
+  /**
+   * İç içerik katmanının stili. `gap` gibi yerleşim değerleri BURAYA verilir;
+   * `style` dış kabuğa uygulandığı için iç boşlukları etkilemez.
+   */
+  contentStyle?: StyleProp<ViewStyle>;
   level?: GlassLevel;
   blur?: boolean;
   padded?: boolean;
@@ -55,6 +60,7 @@ const BLUR_INTENSITY: Record<GlassLevel, number> = {
 export function GlassCard({
   children,
   style,
+  contentStyle,
   level = 'regular',
   blur: withBlur = true,
   padded = true,
@@ -110,7 +116,7 @@ export function GlassCard({
             style={[styles.glint, styles.noEvents]}
           />
         ) : null}
-        <View style={padded ? styles.padded : undefined}>{children}</View>
+        <View style={[padded ? styles.padded : null, contentStyle]}>{children}</View>
       </View>
     </View>
   );

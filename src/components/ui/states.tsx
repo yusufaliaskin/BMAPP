@@ -54,6 +54,9 @@ export function ErrorView({
   return (
     <GlassCard style={styles.card}>
       <View style={styles.inner}>
+        <Text style={styles.emoji} maxFontSizeMultiplier={1.1}>
+          😵‍💫
+        </Text>
         <Text style={[type.h2, styles.center, { color: palette.ink }]}>{title}</Text>
         <Text style={[type.body, styles.center, { color: palette.inkSoft }]}>{message}</Text>
         {onRetry ? (

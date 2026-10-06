@@ -27,7 +27,7 @@ import {
 import { deleteParticipantResult, updateParticipantClass } from '@/data/actions';
 import { certificateForParticipant } from '@/domain/engine/certificates';
 import { rankOf } from '@/domain/engine/ranking';
-import { certificateKindLabel, sectionOf, type Grade } from '@/domain/models';
+import { MEDAL_EMOJI, MEDAL_LABEL, sectionOf, type Grade } from '@/domain/models';
 import { formatDateTimeTR, formatDuration } from '@/lib/format';
 import { emojiForCode } from '@/lib/participant';
 import { glassSurface, palette, radius, space, type } from '@/theme';
@@ -98,28 +98,29 @@ export default function AdminParticipantDetailScreen() {
 
         <Reveal delay={60} style={styles.statsRow}>
           <StatCard
-            icon="star"
+            emoji="⭐"
             value={`${result.score}/${result.maxScore}`}
             label="Puan"
             accent="amber"
           />
           <StatCard
-            icon="trophy"
+            emoji="🏆"
             value={myRank ? `${myRank.rank}.` : '—'}
             label={`${result.grade}. sınıflar sırası`}
             accent="lavender"
           />
         </Reveal>
         <Reveal delay={90} style={styles.statsRow}>
-          <StatCard icon="checkmark-circle" value={result.correct} label="Doğru" accent="mint" />
-          <StatCard icon="close-circle" value={result.wrong} label="Yanlış" accent="coral" />
+          <StatCard emoji="✅" value={result.correct} label="Doğru" accent="mint" />
+          <StatCard emoji="❌" value={result.wrong} label="Yanlış" accent="coral" />
         </Reveal>
 
         {certificate ? (
           <Reveal delay={120}>
             <GlassCard style={styles.certCard}>
               <Text style={[type.bodyBold, { color: palette.ink }]}>
-                {certificateKindLabel(certificate)} belge: {certificate.number}
+                {MEDAL_EMOJI[certificate.medal] ?? '🎓'} {certificate.medal ? MEDAL_LABEL[certificate.medal] : 'Katılım'} Sertifika:{' '}
+                {certificate.number}
               </Text>
               <Button
                 label="SERTİFİKAYI GÖR"

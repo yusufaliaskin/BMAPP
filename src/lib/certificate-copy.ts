@@ -1,8 +1,7 @@
 /**
  * Sertifika metni — tek kaynak. Uygulama içi önizleme (CertificateView) ve PDF
- * üretimi (certificate-pdf) aynı cümleleri kullanır. İki tür vardır:
- *  · 'medal' → sıralamada ilk üç (Altın/Gümüş/Bronz)
- *  · 'participation' → katılım belgesi (her katılımcı alabilir)
+ * üretimi (certificate-pdf) aynı cümleleri kullanır.
+ * Belge yalnızca sıralamada ilk üç için üretilir (Altın / Gümüş / Bronz).
  */
 
 import type { AppConfig, Certificate, Medal } from '@/domain/models';
@@ -37,10 +36,13 @@ const MEDAL_TITLE: Record<Medal, string> = {
 
 export function certificateCopy(certificate: Certificate, config: AppConfig): CertificateCopy {
   const date = formatDateLongTR(certificate.issuedAt);
-  const isMedal = certificate.kind === 'medal' && certificate.rank !== null && certificate.medal;
-  const achievementLine = isMedal
-    ? `${RANK_SUFFIX[certificate.rank as 1 | 2 | 3]} derece · ${MEDAL_TITLE[certificate.medal as Medal]}`
-    : 'Farkındalık testini tamamladı';
+  // Eski/katılım kayıtlarında derece bilgisi boş olabilir; güvenli metin üretilir.
+  const rank = certificate.rank;
+  const medal = certificate.medal;
+  const achievementLine =
+    rank && medal
+      ? `${RANK_SUFFIX[rank]} derece · ${MEDAL_TITLE[medal]}`
+      : 'Farkındalık testini tamamladı';
   return {
     university: config.universityName,
     title: 'BAŞARI SERTİFİKASI',
@@ -60,12 +62,8 @@ export function certificateCopy(certificate: Certificate, config: AppConfig): Ce
 /** Ekran okuyucu için tek cümlelik özet (belge görsel, metin olarak okunur). */
 export function certificateAccessibilityLabel(certificate: Certificate, config: AppConfig): string {
   const copy = certificateCopy(certificate, config);
-  const medal =
-    certificate.kind === 'medal' && certificate.medal
-      ? `${MEDAL_LABEL[certificate.medal]} madalya`
-      : 'katılım belgesi';
   return (
-    `${copy.title} — ${medal}. Belge sahibi ${copy.name}. ${copy.achievementLine}. ` +
-    `${copy.detailLine}. Belge numarası ${copy.numberLabel}.`
+    `${copy.title} — ${certificate.medal ? MEDAL_LABEL[certificate.medal] : 'katılım'} belgesi. Belge sahibi ${copy.name}. ` +
+    `${copy.achievementLine}. ${copy.detailLine}. Belge numarası ${copy.numberLabel}.`
   );
 }

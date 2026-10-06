@@ -5,25 +5,26 @@
  */
 
 import { StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 import { GlassCard } from '@/components/glass/GlassCard';
 import { palette, space, topicAccents, type, type TopicAccent } from '@/theme';
 
 interface StatCardProps {
-  icon: keyof typeof Ionicons.glyphMap;
+  emoji: string;
   value: string | number;
   label: string;
   accent?: TopicAccent;
 }
 
-export function StatCard({ icon, value, label, accent = 'sky' }: StatCardProps) {
+export function StatCard({ emoji, value, label, accent = 'sky' }: StatCardProps) {
   const tone = topicAccents[accent];
   return (
     <GlassCard padded={false} style={styles.card}>
       <View style={styles.inner}>
         <View style={[styles.bubble, { backgroundColor: tone.soft }]}>
-          <Ionicons name={icon} size={22} color={tone.main} />
+          <Text style={styles.emoji} maxFontSizeMultiplier={1.1}>
+            {emoji}
+          </Text>
         </View>
         <Text style={[type.h2, { color: palette.ink }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
           {value}
@@ -56,5 +57,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: space.xs,
+  },
+  emoji: {
+    fontSize: 22,
   },
 });
