@@ -192,10 +192,14 @@ export const motion = {
 
 export const layout = {
   maxContentWidth: 560,
+  /** Masaüstünde sertifika gibi geniş içerikler için üst sınır. */
+  maxWideWidth: 1040,
   screenPadding: 20,
   screenPaddingCompact: 16,
   compactWidth: 360,
   tabletWidth: 700,
+  /** Altında kalan genişlikler "telefon" kabul edilir (tek sütun, alt sayfa). */
+  phoneWidth: 768,
   tabBarHeight: 62,
   buttonHeight: 56,
   buttonHeightSmall: 48,

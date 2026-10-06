@@ -27,7 +27,7 @@ import {
 import { deleteParticipantResult, updateParticipantClass } from '@/data/actions';
 import { certificateForParticipant } from '@/domain/engine/certificates';
 import { rankOf } from '@/domain/engine/ranking';
-import { MEDAL_EMOJI, MEDAL_LABEL, sectionOf, type Grade } from '@/domain/models';
+import { certificateKindLabel, sectionOf, type Grade } from '@/domain/models';
 import { formatDateTimeTR, formatDuration } from '@/lib/format';
 import { emojiForCode } from '@/lib/participant';
 import { glassSurface, palette, radius, space, type } from '@/theme';
@@ -98,29 +98,28 @@ export default function AdminParticipantDetailScreen() {
 
         <Reveal delay={60} style={styles.statsRow}>
           <StatCard
-            emoji="⭐"
+            icon="star"
             value={`${result.score}/${result.maxScore}`}
             label="Puan"
             accent="amber"
           />
           <StatCard
-            emoji="🏆"
+            icon="trophy"
             value={myRank ? `${myRank.rank}.` : '—'}
             label={`${result.grade}. sınıflar sırası`}
             accent="lavender"
           />
         </Reveal>
         <Reveal delay={90} style={styles.statsRow}>
-          <StatCard emoji="✅" value={result.correct} label="Doğru" accent="mint" />
-          <StatCard emoji="❌" value={result.wrong} label="Yanlış" accent="coral" />
+          <StatCard icon="checkmark-circle" value={result.correct} label="Doğru" accent="mint" />
+          <StatCard icon="close-circle" value={result.wrong} label="Yanlış" accent="coral" />
         </Reveal>
 
         {certificate ? (
           <Reveal delay={120}>
             <GlassCard style={styles.certCard}>
               <Text style={[type.bodyBold, { color: palette.ink }]}>
-                {MEDAL_EMOJI[certificate.medal]} {MEDAL_LABEL[certificate.medal]} Sertifika:{' '}
-                {certificate.number}
+                {certificateKindLabel(certificate)} belge: {certificate.number}
               </Text>
               <Button
                 label="SERTİFİKAYI GÖR"

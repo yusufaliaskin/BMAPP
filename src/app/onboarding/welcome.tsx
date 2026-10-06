@@ -1,7 +1,6 @@
 /**
- * Karşılama — kiosk standının ilk ekranı (§6, §38).
- * Oturum kontrolü yoktur: her SIFIRLA ve her açılış bu ekrana gelir.
- * Tek amaç: çocuğu teste başlatmaya davet.
+ * Karşılama — kiosk standının ilk ekranı.
+ * Tek amaç: çocuğu teste başlatmaya davet. Sade: bir simge, bir başlık, kısa bilgi.
  */
 
 import { useRouter } from 'expo-router';
@@ -13,11 +12,7 @@ import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { palette, space, type } from '@/theme';
 
-const PILLS = [
-  { emoji: '📝', label: 'Kısa test' },
-  { emoji: '⭐', label: 'Puanını gör' },
-  { emoji: '🏆', label: 'İlk 3e sertifika' },
-];
+const NOTES = ['Kısa test', 'Puanını gör', 'Sertifikanı al'];
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -26,30 +21,23 @@ export default function WelcomeScreen() {
     <Screen>
       <View style={styles.container}>
         <Reveal style={styles.hero}>
-          <View style={styles.logoWrap}>
-            <Text style={styles.logo} maxFontSizeMultiplier={1.1}>
-              🦸
-            </Text>
-          </View>
+          <Text style={styles.logo} maxFontSizeMultiplier={1.1}>
+            🦸
+          </Text>
         </Reveal>
         <Reveal delay={60}>
-          <Text style={[type.display, styles.title, { color: palette.ink }]}>
-            👋 Hoş geldin!
-          </Text>
+          <Text style={[type.display, styles.center, { color: palette.ink }]}>Hoş geldin!</Text>
         </Reveal>
         <Reveal delay={110}>
-          <Text style={[type.bodySemi, styles.subtitle, { color: palette.inkSoft }]}>
-            Bağımlılıkla mücadele farkındalık testi · 1-3 dakika
+          <Text style={[type.bodySemi, styles.center, { color: palette.inkSoft }]}>
+            Farkındalık testi · 1-3 dakika
           </Text>
         </Reveal>
-        <Reveal delay={170} style={styles.pills}>
-          {PILLS.map((pill) => (
-            <GlassCard key={pill.label} padded={false} style={styles.pill}>
-              <View style={styles.pillInner}>
-                <Text style={styles.pillEmoji} maxFontSizeMultiplier={1.1}>
-                  {pill.emoji}
-                </Text>
-                <Text style={[type.caption, { color: palette.ink }]}>{pill.label}</Text>
+        <Reveal delay={170} style={styles.notes}>
+          {NOTES.map((note) => (
+            <GlassCard key={note} padded={false} style={styles.note}>
+              <View style={styles.noteInner}>
+                <Text style={[type.caption, { color: palette.ink }]}>{note}</Text>
               </View>
             </GlassCard>
           ))}
@@ -57,11 +45,11 @@ export default function WelcomeScreen() {
       </View>
       <Reveal delay={240} style={styles.footer}>
         <Button
-          label="BAŞLA →"
+          label="BAŞLA"
           onPress={() => router.push('/onboarding/name')}
           accessibilityHint="Adını yazacağın ekrana geçer"
         />
-        <Text style={[type.caption, styles.caption, { color: palette.inkFaint }]}>
+        <Text style={[type.caption, styles.center, { color: palette.inkFaint }]}>
           BEÜN · Bağımlılıkla Mücadele Farkındalık Projesi
         </Text>
       </Reveal>
@@ -79,50 +67,30 @@ const styles = StyleSheet.create({
   hero: {
     marginBottom: space.sm,
   },
-  logoWrap: {
-    width: 128,
-    height: 128,
-    borderRadius: 64,
-    backgroundColor: palette.primarySoft,
-    borderWidth: 3,
-    borderColor: palette.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   logo: {
-    fontSize: 68,
-  },
-  title: {
+    fontSize: 76,
     textAlign: 'center',
   },
-  subtitle: {
+  center: {
     textAlign: 'center',
   },
-  pills: {
+  notes: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
     gap: space.sm,
     marginTop: space.md,
   },
-  pill: {
+  note: {
     borderRadius: 999,
   },
-  pillInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.xs,
+  noteInner: {
     paddingHorizontal: space.lg,
-    paddingVertical: space.sm,
-  },
-  pillEmoji: {
-    fontSize: 16,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   footer: {
     gap: space.md,
     paddingBottom: space.md,
-  },
-  caption: {
-    textAlign: 'center',
   },
 });

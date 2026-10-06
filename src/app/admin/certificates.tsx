@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { GlassCard } from '@/components/glass/GlassCard';
 import { PressableScale } from '@/components/ui/PressableScale';
@@ -14,7 +15,7 @@ import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
 import { EmptyState } from '@/components/ui/states';
 import { useCertificates, useConfig } from '@/data/hooks';
-import { MEDAL_EMOJI, MEDAL_LABEL } from '@/domain/models';
+import { certificateKindLabel, type Certificate } from '@/domain/models';
 import { createCertificatePdf } from '@/lib/certificate-pdf';
 import { formatDateTR } from '@/lib/format';
 import { glassSurface, medal, palette, radius, space, type } from '@/theme';
@@ -24,6 +25,9 @@ const MEDAL_TONE: Record<string, string> = {
   silver: medal.silver,
   bronze: medal.bronze,
 };
+
+const toneOf = (certificate: Certificate): string =>
+  certificate.medal ? MEDAL_TONE[certificate.medal] : palette.primary;
 
 export default function AdminCertificatesScreen() {
   const router = useRouter();
@@ -42,10 +46,10 @@ export default function AdminCertificatesScreen() {
     setMessage(null);
     try {
       await createCertificatePdf(certificate, config, { share: true });
-      setMessage(`📄 ${certificate.number} PDF hazır.`);
+      setMessage(`${certificate.number} PDF hazır.`);
     } catch (error) {
       console.warn('PDF üretilemedi.', error);
-      setMessage('❌ PDF üretilemedi. Tekrar dene.');
+      setMessage('PDF üretilemedi. Tekrar dene.');
     } finally {
       setBusyId(null);
     }
@@ -75,7 +79,7 @@ export default function AdminCertificatesScreen() {
                 <GlassCard padded={false}>
                   <PressableScale
                     accessibilityRole="button"
-                    accessibilityLabel={`${certificate.number} ${MEDAL_LABEL[certificate.medal]} sertifikasını önizle`}
+                    accessibilityLabel={`${certificate.number} ${certificateKindLabel(certificate)} belgesini önizle`}
                     haptic="light"
                     onPress={() =>
                       router.push(`/admin/certificate?participantCode=${certificate.participantCode}`)
@@ -83,27 +87,26 @@ export default function AdminCertificatesScreen() {
                   >
                     <View style={styles.row}>
                       <View
-                        style={[
-                          styles.medalBubble,
-                          { backgroundColor: `${MEDAL_TONE[certificate.medal]}22` },
-                        ]}
+                        style={[styles.medalBubble, { backgroundColor: `${toneOf(certificate)}22` }]}
                       >
-                        <Text style={styles.medalEmoji} maxFontSizeMultiplier={1.1}>
-                          {MEDAL_EMOJI[certificate.medal]}
-                        </Text>
+                        <Ionicons
+                          name={certificate.medal ? 'trophy' : 'document-text'}
+                          size={22}
+                          color={toneOf(certificate)}
+                        />
                       </View>
                       <View style={styles.mid}>
                         <Text style={[type.bodyBold, { color: palette.ink }]} numberOfLines={2}>
                           {certificate.displayName}
                         </Text>
                         <Text style={[type.caption, { color: palette.inkFaint }]} numberOfLines={2}>
-                          {MEDAL_LABEL[certificate.medal]} · {certificate.number} ·{' '}
+                          {certificateKindLabel(certificate)} · {certificate.number} ·{' '}
                           {certificate.grade}/{certificate.section} ·{' '}
                           {formatDateTR(certificate.issuedAt)}
                         </Text>
                       </View>
-                      <Text style={[type.h3, { color: palette.rewardDeep }]}>
-                        ⭐ {certificate.score}
+                      <Text style={[type.h3, { color: palette.rewardDeep }]} numberOfLines={1}>
+                        {certificate.score} puan
                       </Text>
                     </View>
                   </PressableScale>
@@ -116,7 +119,7 @@ export default function AdminCertificatesScreen() {
                       style={[styles.pdfButton, glassSurface('strong')]}
                     >
                       <Text style={[type.label, { color: palette.primary }]}>
-                        {busyId === certificate.id ? '⏳ Hazırlanıyor…' : '📄 PDF'}
+                        {busyId === certificate.id ? 'Hazırlanıyor…' : 'PDF'}
                       </Text>
                     </PressableScale>
                   </View>

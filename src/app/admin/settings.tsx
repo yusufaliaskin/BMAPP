@@ -108,10 +108,8 @@ export default function AdminSettingsScreen() {
           >
             <GlassCard padded={false}>
               <View style={styles.linkRow}>
-                <View style={styles.linkEmoji}>
-                  <Text style={styles.linkEmojiText} maxFontSizeMultiplier={1.1}>
-                    🧑‍💼
-                  </Text>
+                <View style={styles.linkIcon}>
+                  <Ionicons name="person-circle" size={22} color={palette.primary} />
                 </View>
                 <View style={styles.linkText}>
                   <Text style={[type.bodyBold, { color: palette.ink }]}>Yöneticiler</Text>
@@ -299,16 +297,13 @@ const styles = StyleSheet.create({
     gap: space.md,
     padding: space.lg,
   },
-  linkEmoji: {
+  linkIcon: {
     width: 44,
     height: 44,
     borderRadius: 18,
     backgroundColor: palette.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  linkEmojiText: {
-    fontSize: 22,
   },
   linkText: {
     flex: 1,

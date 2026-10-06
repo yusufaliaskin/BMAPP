@@ -1,12 +1,13 @@
 /**
- * Yönetici girişi — PIN noktaları + dokunmatik tuş takımı (kiosk dostu tasarım).
- * 4. hane girilince otomatik doğrulanır; hatalı PIN'de noktalar sıfırlanır,
- * nazik uyarı ve kısa bir titreme gösterilir. Klavye açılmaz (tablet standı için ideal).
+ * Yönetici girişi — PIN.
+ * Masaüstünde (geniş web) hem fiziksel klavyeyle yazılır hem ekrandaki sayı
+ * tuşları kullanılır; mobilde yalnız input alanı ve cihaz klavyesi görünür.
+ * 4 hane girilince otomatik doğrulanır; hatalı PIN'de alan sıfırlanır ve uyarı verilir.
  */
 
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -21,12 +22,14 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Reveal } from '@/components/ui/Reveal';
 import { Screen } from '@/components/ui/Screen';
+import { TextField } from '@/components/ui/TextField';
 import { useAdminGate } from './_layout';
 import { useAdmins } from '@/data/hooks';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { findAdminByPin } from '@/lib/pin';
-import { palette, radius, space, type } from '@/theme';
+import { layout, palette, space, type } from '@/theme';
 
+const PIN_LENGTH = 4;
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'empty', '0', 'back'] as const;
 
 export default function AdminLoginScreen() {
@@ -34,11 +37,16 @@ export default function AdminLoginScreen() {
   const { unlock } = useAdminGate();
   const admins = useAdmins();
   const reduced = useReducedMotion();
+  const { width } = useWindowDimensions();
+
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
   const [showExit, setShowExit] = useState(false);
   const shake = useSharedValue(0);
+
+  // Sayı tuşları yalnız masaüstünde (geniş web): telefonda cihaz klavyesi kullanılır.
+  const showKeypad = Platform.OS === 'web' && width >= layout.phoneWidth;
 
   const submit = async (candidate: string) => {
     setChecking(true);
@@ -67,101 +75,89 @@ export default function AdminLoginScreen() {
     }
   };
 
-  const pressDigit = (digit: string) => {
+  const acceptDigits = (candidate: string) => {
     if (checking) return;
     setError(null);
-    const next = pin + digit;
+    const next = candidate.replace(/\D/g, '').slice(0, PIN_LENGTH);
     setPin(next);
-    if (next.length === 4) void submit(next);
+    if (next.length === PIN_LENGTH) void submit(next);
   };
 
+  const pressDigit = (digit: string) => acceptDigits(pin + digit);
   const pressBack = () => {
     if (checking) return;
     setError(null);
     setPin((current) => current.slice(0, -1));
   };
 
-  const dotsStyle = useAnimatedStyle(() => ({
+  const shakeStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: shake.value }],
   }));
 
   return (
     <Screen title="Yönetici Girişi" onBack={() => setShowExit(true)}>
-      <View style={styles.body}>
-        <Reveal style={styles.hero}>
-          <View style={styles.logoWrap}>
-            <Text style={styles.logo} maxFontSizeMultiplier={1.1}>
-              🔐
-            </Text>
-          </View>
-          <Text style={[type.h1, styles.center, { color: palette.ink }]}>Yönetici Girişi</Text>
-          <Text style={[type.bodySemi, styles.center, { color: palette.inkSoft }]}>
-            Devam etmek için PIN’ini gir
-          </Text>
-        </Reveal>
-
-        <Reveal delay={80}>
-          <Animated.View style={[styles.dots, dotsStyle]}>
-            {[0, 1, 2, 3].map((index) => (
-              <View
-                key={index}
-                style={[
-                  styles.dot,
-                  index < pin.length ? styles.dotFilled : null,
-                  error ? styles.dotError : null,
-                ]}
-              />
-            ))}
-          </Animated.View>
+      <Animated.View style={[styles.body, shakeStyle]}>
+        <Reveal>
+          <TextField
+            label="PIN"
+            placeholder="••••"
+            value={pin}
+            onChangeText={acceptDigits}
+            keyboardType="number-pad"
+            inputMode="numeric"
+            secureTextEntry
+            maxLength={PIN_LENGTH}
+            autoFocus
+            editable={!checking}
+            error={error ?? undefined}
+            hint={showKeypad ? undefined : 'Yönetici PIN’ini gir.'}
+            accessibilityHint="Dört haneli yönetici PIN'i"
+          />
         </Reveal>
 
         <View style={styles.statusArea}>
-          {error ? (
-            <Text
-              accessibilityLiveRegion="polite"
-              style={[type.caption, styles.center, { color: palette.coral }]}
-            >
-              {error}
-            </Text>
-          ) : checking ? (
+          {checking ? (
             <Text style={[type.caption, styles.center, { color: palette.inkSoft }]}>
               Kontrol ediliyor…
             </Text>
           ) : null}
         </View>
 
-        <Reveal delay={140}>
-          <GlassCard padded={false}>
-            <View style={styles.keypad}>
-              {KEYS.map((key, index) =>
-                key === 'empty' ? (
-                  <View key={index} style={styles.key} />
-                ) : (
-                  <PressableScale
-                    key={index}
-                    accessibilityRole="button"
-                    accessibilityLabel={key === 'back' ? 'Sil' : key}
-                    haptic="none"
-                    disabled={checking}
-                    onPress={() => (key === 'back' ? pressBack() : pressDigit(key))}
-                    style={styles.key}
-                  >
-                    <View style={styles.keyInner}>
-                      {key === 'back' ? (
-                        <Ionicons name="backspace-outline" size={26} color={palette.inkSoft} />
-                      ) : (
-                        <Text style={styles.keyText} maxFontSizeMultiplier={1.1}>
-                          {key}
-                        </Text>
-                      )}
-                    </View>
-                  </PressableScale>
-                ),
-              )}
-            </View>
-          </GlassCard>
-        </Reveal>
-      </View>
+        {showKeypad ? (
+          <Reveal delay={80}>
+            <GlassCard padded={false} style={styles.keypadCard}>
+              <View style={styles.keypad}>
+                {KEYS.map((key, index) =>
+                  key === 'empty' ? (
+                    <View key={index} style={styles.key} />
+                  ) : (
+                    <PressableScale
+                      key={index}
+                      accessibilityRole="button"
+                      accessibilityLabel={key === 'back' ? 'Sil' : key}
+                      haptic="none"
+                      disabled={checking}
+                      onPress={() => (key === 'back' ? pressBack() : pressDigit(key))}
+                      style={styles.key}
+                    >
+                      <View style={styles.keyInner}>
+                        {key === 'back' ? (
+                          <Ionicons name="backspace-outline" size={26} color={palette.inkSoft} />
+                        ) : (
+                          <Text style={styles.keyText} maxFontSizeMultiplier={1.1}>
+                            {key}
+                          </Text>
+                        )}
+                      </View>
+                    </PressableScale>
+                  ),
+                )}
+              </View>
+            </GlassCard>
+          </Reveal>
+        ) : null}
+      </Animated.View>
+
       <ConfirmDialog
         visible={showExit}
         title="Çıkmak istiyor musunuz?"
@@ -181,50 +177,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: space.lg,
   },
-  hero: {
-    alignItems: 'center',
-    gap: space.xs,
-  },
-  logoWrap: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: palette.primarySoft,
-    borderWidth: 3,
-    borderColor: palette.white,
-    alignItems: 'center',
+  statusArea: {
+    minHeight: 20,
     justifyContent: 'center',
-    marginBottom: space.sm,
-  },
-  logo: {
-    fontSize: 44,
   },
   center: {
     textAlign: 'center',
   },
-  dots: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: space.lg,
-  },
-  dot: {
-    width: 20,
-    height: 20,
-    borderRadius: radius.pill,
-    borderWidth: 2,
-    borderColor: palette.inkFaint,
-    backgroundColor: 'rgba(255,255,255,0.5)',
-  },
-  dotFilled: {
-    backgroundColor: palette.primary,
-    borderColor: palette.primary,
-  },
-  dotError: {
-    borderColor: palette.coral,
-  },
-  statusArea: {
-    minHeight: 20,
-    justifyContent: 'center',
+  keypadCard: {
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 340,
   },
   keypad: {
     flexDirection: 'row',
@@ -233,7 +196,7 @@ const styles = StyleSheet.create({
   },
   key: {
     width: '33.33%',
-    height: 64,
+    height: 60,
     alignItems: 'center',
     justifyContent: 'center',
     padding: space.xs,
@@ -241,7 +204,7 @@ const styles = StyleSheet.create({
   keyInner: {
     width: '100%',
     height: '100%',
-    borderRadius: radius.lg,
+    borderRadius: 18,
     backgroundColor: 'rgba(255,255,255,0.55)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.9)',

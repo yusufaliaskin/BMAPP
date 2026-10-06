@@ -35,6 +35,8 @@ interface ScreenProps {
   footer?: ReactNode;
   contentStyle?: StyleProp<ViewStyle>;
   headerTransparent?: boolean;
+  /** İçerik genişliği: 'content' telefon öncelikli (560), 'wide' masaüstü (1040). */
+  width?: 'content' | 'wide';
 }
 
 export function Screen({
@@ -48,6 +50,7 @@ export function Screen({
   footer,
   contentStyle,
   headerTransparent = false,
+  width = 'content',
 }: ScreenProps) {
   const body = scroll ? (
     <ScrollView
@@ -67,7 +70,12 @@ export function Screen({
   );
 
   const content = (
-    <View style={styles.column}>
+    <View
+      style={[
+        styles.column,
+        { maxWidth: width === 'wide' ? layout.maxWideWidth : layout.maxContentWidth },
+      ]}
+    >
       {title || onBack || right ? (
         <View style={[styles.header, headerTransparent ? styles.headerTransparent : null]}>
           <View style={styles.headerSide}>

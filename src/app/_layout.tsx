@@ -86,6 +86,7 @@ export default function RootLayout() {
           <Stack.Screen name="test/start" options={{ gestureEnabled: false }} />
           <Stack.Screen name="test/question" options={{ gestureEnabled: false }} />
           <Stack.Screen name="test/result" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="test/certificate" options={{ gestureEnabled: false }} />
         </Stack>
       </StoreProvider>
     </GestureHandlerRootView>

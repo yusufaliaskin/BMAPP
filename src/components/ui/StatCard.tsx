@@ -1,29 +1,29 @@
 /**
  * StatCard — tek istatistik kartı (dashboard, ana sayfa, sınıf özetleri).
- * Emoji balonu + büyük değer + etiket; ızgara içinde eşit geometri.
+ * Simge balonu + büyük değer + etiket; ızgara içinde eşit geometri.
+ * Emoji yerine vektör simge kullanılır (platformlar arası tutarlı ve tema rengine uyar).
  */
 
 import { StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { GlassCard } from '@/components/glass/GlassCard';
 import { palette, space, topicAccents, type, type TopicAccent } from '@/theme';
 
 interface StatCardProps {
-  emoji: string;
+  icon: keyof typeof Ionicons.glyphMap;
   value: string | number;
   label: string;
   accent?: TopicAccent;
 }
 
-export function StatCard({ emoji, value, label, accent = 'sky' }: StatCardProps) {
+export function StatCard({ icon, value, label, accent = 'sky' }: StatCardProps) {
   const tone = topicAccents[accent];
   return (
     <GlassCard padded={false} style={styles.card}>
       <View style={styles.inner}>
         <View style={[styles.bubble, { backgroundColor: tone.soft }]}>
-          <Text style={styles.emoji} maxFontSizeMultiplier={1.1}>
-            {emoji}
-          </Text>
+          <Ionicons name={icon} size={22} color={tone.main} />
         </View>
         <Text style={[type.h2, { color: palette.ink }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
           {value}
@@ -56,8 +56,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: space.xs,
-  },
-  emoji: {
-    fontSize: 22,
   },
 });

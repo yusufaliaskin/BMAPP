@@ -6,7 +6,7 @@
  * mevcut numara korunur; sıra/puan/madalya güncellenir.
  */
 
-import type { AppConfig, Certificate, Grade, Medal, RankEntry } from '../models';
+import type { AppConfig, Certificate, Grade, Medal, RankEntry, TestResult } from '../models';
 import { medalForRank } from '../models';
 
 function nextNumber(
@@ -57,12 +57,15 @@ export function issueTop3(
     );
     if (currentIndex >= 0) {
       const current = result[currentIndex];
-      if (current.rank !== rank || current.score !== entry.score) {
+      const needsUpgrade =
+        current.kind !== 'medal' || current.rank !== rank || current.score !== entry.score;
+      if (needsUpgrade) {
         const next: Certificate = {
           ...current,
           displayName: entry.displayName,
           rank,
           medal,
+          kind: 'medal',
           score: entry.score,
           issuedAt: nowIso,
         };
@@ -80,6 +83,7 @@ export function issueTop3(
       section: entry.section,
       rank,
       medal,
+      kind: 'medal',
       score: entry.score,
       period: config.period,
       issuedAt: nowIso,
@@ -89,6 +93,46 @@ export function issueTop3(
   }
 
   return { certificates: result, created, updated };
+}
+
+export interface EnsureCertificateOutcome {
+  certificates: Certificate[];
+  certificate: Certificate;
+  created: boolean;
+}
+
+/**
+ * Katılımcının belgesini garanti eder: varsa (derece ya da katılım) aynen döner,
+ * yoksa "katılım belgesi" üretir. Böylece her çocuk sonuç ekranından belgesini
+ * alabilir; sıralamada ilk üçe girenin belgesi yönetici üretince madalyaya yükselir
+ * (numara korunur). Aynı katılımcı + dönem için tek belge vardır.
+ */
+export function ensureCertificateForResult(
+  result: TestResult,
+  existing: Certificate[],
+  config: AppConfig,
+  makeId: () => string,
+  nowIso: string,
+): EnsureCertificateOutcome {
+  const found = certificateForParticipant(existing, result.participantCode, config.period);
+  if (found) return { certificates: existing, certificate: found, created: false };
+
+  const section = result.classId.replace(/^\d/, '');
+  const certificate: Certificate = {
+    id: makeId(),
+    number: nextNumber(config.certificatePrefix, config.period, result.grade, existing),
+    participantCode: result.participantCode,
+    displayName: result.displayName,
+    grade: result.grade,
+    section,
+    rank: null,
+    medal: null,
+    kind: 'participation',
+    score: result.score,
+    period: config.period,
+    issuedAt: nowIso,
+  };
+  return { certificates: [...existing, certificate], certificate, created: true };
 }
 
 export function certificateForParticipant(

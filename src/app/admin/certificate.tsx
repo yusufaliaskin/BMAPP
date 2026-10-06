@@ -91,13 +91,12 @@ export default function AdminCertificatePreviewScreen() {
   };
 
   return (
-    <Screen title="Sertifika Önizleme 🎓" onBack={() => router.back()} scroll>
+    <Screen title="Sertifika" onBack={() => router.back()} scroll width="wide">
       <View style={styles.container}>
         <Reveal>
           <CertificateView certificate={certificate} config={config} />
           <Text style={[type.caption, styles.note, { color: palette.inkFaint }]}>
-            Önizleme ekran genişliğine göre küçültüldü. PDF, A4 yatay sayfada baskı
-            boyutunda üretilir.
+            PDF, A4 yatay sayfada baskı boyutunda üretilir.
           </Text>
         </Reveal>
         <Reveal delay={100} style={styles.actions}>

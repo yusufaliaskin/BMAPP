@@ -58,26 +58,21 @@ export default function TestStartScreen() {
     <Screen title="Test" onBack={() => router.back()}>
       <View style={styles.body}>
         <Reveal style={styles.hero}>
-          <Text style={styles.emoji} maxFontSizeMultiplier={1.1}>
-            🎯
-          </Text>
-          <Text style={[type.h1, styles.center, { color: palette.ink }]}>HAZIR MISIN?</Text>
+          <Text style={[type.h1, styles.center, { color: palette.ink }]}>Hazır mısın?</Text>
           <Text style={[type.bodySemi, styles.center, { color: palette.inkSoft }]}>
-            {schoolClass.grade}/{schoolClass.section} · {DIFFICULTY_LABEL[settings.difficulty]}
+            {name} · {schoolClass.grade}/{schoolClass.section} · {DIFFICULTY_LABEL[settings.difficulty]}
           </Text>
         </Reveal>
 
         <Reveal delay={80}>
-          <GlassCard glint style={styles.infoCard}>
+          <GlassCard style={styles.infoCard}>
             <View style={styles.infoRow}>
               <View style={styles.infoItem}>
-                <Text style={styles.infoEmoji}>📝</Text>
-                <Text style={[type.h2, { color: palette.ink }]}>{plan.questions.length} Soru</Text>
+                <Text style={[type.h2, { color: palette.ink }]}>{plan.questions.length} soru</Text>
               </View>
               <View style={styles.divider} />
               <View style={styles.infoItem}>
-                <Text style={styles.infoEmoji}>⭐</Text>
-                <Text style={[type.h2, { color: palette.ink }]}>{plan.totalPoints} Puan</Text>
+                <Text style={[type.h2, { color: palette.ink }]}>{plan.totalPoints} puan</Text>
               </View>
             </View>
           </GlassCard>
@@ -86,7 +81,7 @@ export default function TestStartScreen() {
 
       <Reveal delay={160}>
         <Button
-          label="BAŞLA 🚀"
+          label="BAŞLA"
           onPress={begin}
           disabled={plan.questions.length === 0}
           accessibilityHint="İlk soruyu açar"
@@ -106,9 +101,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: space.sm,
   },
-  emoji: {
-    fontSize: 64,
-  },
   center: {
     textAlign: 'center',
   },
@@ -121,9 +113,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     gap: space.sm,
-  },
-  infoEmoji: {
-    fontSize: 30,
   },
   divider: {
     width: 1,

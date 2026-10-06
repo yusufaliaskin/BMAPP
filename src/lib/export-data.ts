@@ -16,6 +16,7 @@ import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 import type { DBData, DBState } from '@/domain/models';
+import { certificateKindLabel } from '@/domain/models';
 
 export interface ExportOutcome {
   fileName: string;
@@ -57,8 +58,8 @@ export function buildParticipantsCsv(data: DBData): string {
         certificate.displayName,
         `${certificate.grade}. sınıf`,
         certificate.section,
-        `${certificate.rank}.`,
-        certificate.medal,
+        certificate.rank === null ? 'Katılım' : `${certificate.rank}.`,
+        certificateKindLabel(certificate),
         certificate.score,
         certificate.period,
         certificate.issuedAt.replace('T', ' ').slice(0, 16),

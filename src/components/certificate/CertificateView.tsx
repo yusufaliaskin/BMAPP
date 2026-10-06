@@ -1,30 +1,27 @@
 /**
- * CertificateView — uygulama içi sertifika önizlemesi.
- * Klasik belge dili (referans görsel): fildişi zemin, çift altın çerçeve, lacivert
- * serif başlık, el yazısı ad, köşede rozet, alt orta nokta balmumu mühür ve iki
- * imza bloğu. A4 yatay oranı (1000×707 tasarım birimi) gerçek en-boy oranında
- * çizilir; içerik ekran genişliğine göre ölçeklenir.
- *
- * Emoji KULLANILMAZ — süsleme geometri ve tipografiyle yapılır (harf-grafik
- * ★ ◆ yalnız tekil glif olarak, yan yana iki emoji olacak şekilde kullanılmaz).
+ * CertificateView — uygulama içi sertifika görünümü (sade, gerçek belge gibi).
+ * Fildişi zemin + çift altın çerçeve + lacivert serif başlık + el yazısı ad;
+ * altında kısa künye, tarih, iki imza alanı ve mühür. Emoji ve süsleme yok.
+ * A4 yatay oranı (1000×707 tasarım birimi) kapsayıcı genişliğine ölçeklenir:
+ * masaüstünde büyük ve okunur, telefonda yatay oran korunur.
  */
 
 import { useState } from 'react';
-import { StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+  type LayoutChangeEvent,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import type { AppConfig, Certificate, Medal } from '@/domain/models';
+import type { AppConfig, Certificate } from '@/domain/models';
 import { certificateAccessibilityLabel, certificateCopy } from '@/lib/certificate-copy';
-import { certificate, shadows } from '@/theme';
+import { certificate, layout, shadows } from '@/theme';
 
 const DESIGN_W = 1000;
 const DESIGN_H = 707;
-
-const MEDAL_TONE: Record<Medal, { main: string; deep: string }> = {
-  gold: { main: '#C9A227', deep: '#8A6B10' },
-  silver: { main: '#8D9CB8', deep: '#5F6E88' },
-  bronze: { main: '#C07A45', deep: '#8A5327' },
-};
 
 interface CertificateViewProps {
   certificate: Certificate;
@@ -32,14 +29,21 @@ interface CertificateViewProps {
 }
 
 export function CertificateView({ certificate: doc, config }: CertificateViewProps) {
-  const [width, setWidth] = useState(0);
-  const onLayout = (event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width);
+  const { width: windowWidth } = useWindowDimensions();
+  const [measured, setMeasured] = useState(0);
+  const onLayout = (event: LayoutChangeEvent) => setMeasured(event.nativeEvent.layout.width);
 
   const copy = certificateCopy(doc, config);
-  const tone = MEDAL_TONE[doc.medal];
+  // Kapsayıcı genişliği: ölçüm gelene kadar pencere ölçüsünden hesaplanır.
+  // (Web'de onLayout gecikebildiği için belge ilk karede de doğru ölçekte çizilir.)
+  const fallback = Math.max(
+    0,
+    Math.min(windowWidth, layout.maxWideWidth) - layout.screenPadding * 2,
+  );
+  const width = measured > 0 ? measured : fallback;
   const s = width > 0 ? width / DESIGN_W : 0;
   const px = (value: number) => value * s;
-  // Uzun adlar tek satıra sığmalı: küçülerek taşmayı önler (PDF ile aynı eşik).
+  // Uzun adlar tek satıra sığmalı: küçülerek taşmayı önler.
   const nameSize = copy.name.length > 26 ? 46 : copy.name.length > 18 ? 58 : 74;
 
   return (
@@ -55,7 +59,7 @@ export function CertificateView({ certificate: doc, config }: CertificateViewPro
             width: DESIGN_W * s,
             height: DESIGN_H * s,
             borderWidth: px(6),
-            borderColor: tone.main,
+            borderColor: certificate.gold,
             borderRadius: px(8),
             padding: px(9),
           }}
@@ -64,123 +68,133 @@ export function CertificateView({ certificate: doc, config }: CertificateViewPro
             style={{
               flex: 1,
               borderWidth: px(1.6),
-              borderColor: tone.deep,
+              borderColor: certificate.goldDeep,
               borderRadius: px(4),
-              paddingHorizontal: px(54),
-              paddingTop: px(40),
-              paddingBottom: px(30),
+              paddingHorizontal: px(64),
+              paddingTop: px(44),
+              paddingBottom: px(26),
+              alignItems: 'center',
             }}
           >
-            <Rosette px={px} toneMain={tone.main} toneDeep={tone.deep} />
-            <NumberPlate px={px} toneMain={tone.main} label={copy.numberLabel} period={copy.periodLabel} />
+            <Text
+              style={{
+                fontFamily: 'PlayfairDisplay_400Regular',
+                fontSize: px(17),
+                lineHeight: px(23),
+                letterSpacing: px(4.5),
+                textTransform: 'uppercase',
+                color: certificate.ink,
+                textAlign: 'center',
+              }}
+            >
+              {copy.university}
+            </Text>
 
-            <View style={{ alignItems: 'center', gap: px(10), marginTop: px(2) }}>
-              <Text
-                style={{
-                  fontFamily: 'PlayfairDisplay_400Regular',
-                  fontSize: px(17),
-                  lineHeight: px(23),
-                  letterSpacing: px(4.5),
-                  textTransform: 'uppercase',
-                  color: certificate.ink,
-                  textAlign: 'center',
-                  maxWidth: px(620),
-                }}
-              >
-                {copy.university}
-              </Text>
-              <Ornament px={px} toneMain={tone.main} />
-              <Text
-                style={{
-                  fontFamily: 'PlayfairDisplay_400Regular',
-                  fontSize: px(21),
-                  lineHeight: px(27),
-                  fontStyle: 'italic',
-                  color: certificate.inkSoft,
-                  textAlign: 'center',
-                }}
-              >
-                {copy.project}
-              </Text>
-            </View>
+            <Text
+              style={{
+                fontFamily: 'PlayfairDisplay_700Bold',
+                fontSize: px(56),
+                lineHeight: px(66),
+                letterSpacing: px(4),
+                textTransform: 'uppercase',
+                color: certificate.ink,
+                textAlign: 'center',
+                marginTop: px(30),
+              }}
+            >
+              {copy.title}
+            </Text>
 
-            <View style={{ alignItems: 'center', marginTop: px(24), gap: px(9) }}>
-              <Text
-                style={{
-                  fontFamily: 'PlayfairDisplay_700Bold',
-                  fontSize: px(54),
-                  lineHeight: px(64),
-                  letterSpacing: px(4),
-                  textTransform: 'uppercase',
-                  color: certificate.ink,
-                  textAlign: 'center',
-                }}
-              >
-                {copy.title}
-              </Text>
-              <Text
-                style={{
-                  fontFamily: 'PlayfairDisplay_700Bold',
-                  fontSize: px(20),
-                  lineHeight: px(26),
-                  letterSpacing: px(5),
-                  color: tone.deep,
-                  textAlign: 'center',
-                }}
-              >
-                {copy.medalLine}
-              </Text>
-            </View>
+            <Text
+              style={{
+                fontFamily: 'PlayfairDisplay_400Regular',
+                fontSize: px(18),
+                lineHeight: px(24),
+                letterSpacing: px(5),
+                textTransform: 'uppercase',
+                color: certificate.goldDeep,
+                marginTop: px(34),
+              }}
+            >
+              {copy.ownerLabel}
+            </Text>
 
-            <View style={{ alignItems: 'center', marginTop: px(26), gap: px(5) }}>
-              <Text
-                style={{
-                  fontFamily: 'PlayfairDisplay_400Regular',
-                  fontSize: px(18),
-                  lineHeight: px(24),
-                  letterSpacing: px(5),
-                  textTransform: 'uppercase',
-                  color: certificate.goldDeep,
-                }}
-              >
-                {copy.ownerLabel}
-              </Text>
-              <Text
-                style={{
-                  fontFamily: 'DancingScript_700Bold',
-                  fontSize: px(nameSize),
-                  lineHeight: px(nameSize * 1.16),
-                  color: certificate.ink,
-                  textAlign: 'center',
-                  maxWidth: px(880),
-                }}
-                numberOfLines={1}
-              >
-                {copy.name}
-              </Text>
-              <View style={{ width: px(380), height: px(1.6), backgroundColor: tone.main, marginTop: px(3) }} />
-              <Text
-                style={{
-                  fontFamily: 'PlayfairDisplay_400Regular',
-                  fontSize: px(22),
-                  lineHeight: px(32),
-                  color: certificate.inkSoft,
-                  textAlign: 'center',
-                  marginTop: px(8),
-                  maxWidth: px(860),
-                }}
-              >
-                {copy.achievement}
-              </Text>
-            </View>
+            <Text
+              style={{
+                fontFamily: 'DancingScript_700Bold',
+                fontSize: px(nameSize),
+                lineHeight: px(nameSize * 1.16),
+                color: certificate.ink,
+                textAlign: 'center',
+                maxWidth: px(840),
+              }}
+              numberOfLines={1}
+            >
+              {copy.name}
+            </Text>
+
+            <View
+              style={{
+                width: px(380),
+                height: px(1.6),
+                backgroundColor: certificate.gold,
+                marginTop: px(10),
+              }}
+            />
+
+            <Text
+              style={{
+                fontFamily: 'PlayfairDisplay_400Regular',
+                fontSize: px(24),
+                lineHeight: px(32),
+                color: certificate.ink,
+                textAlign: 'center',
+                marginTop: px(16),
+              }}
+            >
+              {copy.achievementLine}
+            </Text>
+
+            <Text
+              style={{
+                fontFamily: 'PlayfairDisplay_400Regular',
+                fontSize: px(19),
+                lineHeight: px(26),
+                color: certificate.inkSoft,
+                textAlign: 'center',
+                marginTop: px(6),
+              }}
+            >
+              {copy.detailLine}
+            </Text>
 
             <View style={{ flex: 1 }} />
 
-            <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'flex-end',
+                justifyContent: 'space-between',
+                alignSelf: 'stretch',
+              }}
+            >
               <SignatureBlock px={px} role={copy.leftRole} caption={copy.signatureCaption} />
               <Seal px={px} text={copy.sealText} />
               <SignatureBlock px={px} role={copy.rightRole} caption={copy.signatureCaption} />
             </View>
+
+            <Text
+              style={{
+                fontFamily: 'PlayfairDisplay_400Regular',
+                fontSize: px(16),
+                lineHeight: px(22),
+                letterSpacing: px(1.5),
+                color: certificate.inkSoft,
+                marginTop: px(14),
+              }}
+            >
+              Belge No: {copy.numberLabel}
+            </Text>
           </View>
         </LinearGradient>
       ) : null}
@@ -192,142 +206,10 @@ interface Scaled {
   px: (value: number) => number;
 }
 
-function Rosette({ px, toneMain, toneDeep }: Scaled & { toneMain: string; toneDeep: string }) {
-  return (
-    <View style={{ position: 'absolute', left: px(26), top: px(24), width: px(96), height: px(134), alignItems: 'center' }}>
-      <View
-        style={{
-          position: 'absolute',
-          top: px(52),
-          left: px(19),
-          width: px(24),
-          height: px(74),
-          backgroundColor: toneMain,
-          transform: [{ rotate: '-13deg' }],
-          borderBottomLeftRadius: px(3),
-        }}
-      />
-      <View
-        style={{
-          position: 'absolute',
-          top: px(52),
-          left: px(49),
-          width: px(24),
-          height: px(74),
-          backgroundColor: toneDeep,
-          transform: [{ rotate: '13deg' }],
-          borderBottomRightRadius: px(3),
-        }}
-      />
-      <View
-        style={{
-          width: px(80),
-          height: px(80),
-          borderRadius: px(40),
-          backgroundColor: certificate.ink,
-          borderWidth: px(5),
-          borderColor: toneMain,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <View
-          style={{
-            position: 'absolute',
-            width: px(62),
-            height: px(62),
-            borderRadius: px(31),
-            borderWidth: px(1.2),
-            borderColor: certificate.goldSoft,
-            opacity: 0.75,
-          }}
-        />
-        <Text style={{ fontFamily: 'PlayfairDisplay_700Bold', fontSize: px(32), lineHeight: px(36), color: toneMain }}>
-          {'★'}
-        </Text>
-      </View>
-    </View>
-  );
-}
-
-function NumberPlate({
-  px,
-  toneMain,
-  label,
-  period,
-}: Scaled & { toneMain: string; label: string; period: string }) {
-  return (
-    <View
-      style={{
-        position: 'absolute',
-        right: px(24),
-        top: px(28),
-        alignItems: 'center',
-        gap: px(3),
-        borderWidth: px(1.4),
-        borderColor: toneMain,
-        borderRadius: px(6),
-        paddingHorizontal: px(14),
-        paddingVertical: px(7),
-      }}
-    >
-      <Text
-        style={{
-          fontFamily: 'PlayfairDisplay_400Regular',
-          fontSize: px(12),
-          lineHeight: px(16),
-          letterSpacing: px(2.5),
-          textTransform: 'uppercase',
-          color: certificate.goldDeep,
-        }}
-      >
-        Belge No
-      </Text>
-      <Text
-        style={{
-          fontFamily: 'PlayfairDisplay_700Bold',
-          fontSize: px(17),
-          lineHeight: px(22),
-          letterSpacing: px(0.5),
-          color: certificate.ink,
-        }}
-      >
-        {label}
-      </Text>
-      <Text
-        style={{
-          fontFamily: 'PlayfairDisplay_400Regular',
-          fontSize: px(12),
-          lineHeight: px(16),
-          color: certificate.inkSoft,
-        }}
-      >
-        {period}
-      </Text>
-    </View>
-  );
-}
-
-function Ornament({ px, toneMain }: Scaled & { toneMain: string }) {
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: px(10) }}>
-      <View style={{ width: px(92), height: px(1.2), backgroundColor: toneMain }} />
-      <Text style={{ fontFamily: 'PlayfairDisplay_400Regular', fontSize: px(14), lineHeight: px(18), color: toneMain }}>
-        {'◆'}
-      </Text>
-      <View style={{ width: px(92), height: px(1.2), backgroundColor: toneMain }} />
-    </View>
-  );
-}
-
-function SignatureBlock({
-  px,
-  role,
-  caption,
-}: Scaled & { role: string; caption: string }) {
+function SignatureBlock({ px, role, caption }: Scaled & { role: string; caption: string }) {
   return (
     <View style={{ width: px(230), alignItems: 'center', gap: px(6) }}>
-      <View style={{ width: px(200), height: px(1.2), backgroundColor: certificate.ink, opacity: 0.55 }} />
+      <View style={{ width: px(200), height: px(1.2), backgroundColor: certificate.ink, opacity: 0.5 }} />
       <Text
         style={{
           fontFamily: 'PlayfairDisplay_700Bold',
@@ -380,14 +262,11 @@ function Seal({ px, text }: Scaled & { text: string }) {
           borderColor: 'rgba(255,236,214,0.6)',
         }}
       />
-      <Text style={{ fontFamily: 'PlayfairDisplay_700Bold', fontSize: px(15), lineHeight: px(19), color: '#F7DFC8' }}>
-        {'★'}
-      </Text>
       <Text
         style={{
           fontFamily: 'PlayfairDisplay_700Bold',
-          fontSize: px(14),
-          lineHeight: px(17),
+          fontSize: px(15),
+          lineHeight: px(18),
           letterSpacing: px(1),
           color: '#FFF3E2',
           textAlign: 'center',
