@@ -16,7 +16,7 @@ import { Screen } from '@/components/ui/Screen';
 import { EmptyState } from '@/components/ui/states';
 import { useCertificates, useConfig } from '@/data/hooks';
 import { certificateForParticipant } from '@/domain/engine/certificates';
-import { createCertificatePdf, shareCertificatePdfFile } from '@/lib/certificate-pdf';
+import { createCertificatePdf } from '@/lib/certificate-pdf';
 import { palette, space, type } from '@/theme';
 
 export default function AdminCertificatePreviewScreen() {
@@ -24,8 +24,7 @@ export default function AdminCertificatePreviewScreen() {
   const { participantCode } = useLocalSearchParams<{ participantCode?: string }>();
   const certificates = useCertificates();
   const config = useConfig();
-  const [generatedUri, setGeneratedUri] = useState<string | null>(null);
-  const [busy, setBusy] = useState<'none' | 'pdf' | 'share'>('none');
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
@@ -49,44 +48,25 @@ export default function AdminCertificatePreviewScreen() {
     );
   }
 
-  const createPdf = async () => {
-    if (busy !== 'none') return;
-    setBusy('pdf');
+  const savePdf = async () => {
+    if (busy) return;
+    setBusy(true);
     setError(null);
     setInfo(null);
     try {
-      const outcome = await createCertificatePdf(certificate, config);
       if (Platform.OS === 'web') {
-        setInfo('Yazdırma penceresinde "PDF olarak kaydet" seçeneğini kullanabilirsin.');
-      } else if (outcome.uri) {
-        setGeneratedUri(outcome.uri);
-        setInfo('✅ PDF hazır — "PAYLAŞ / KAYDET" ile telefonuna kaydedebilirsin.');
+        await createCertificatePdf(certificate, config);
+        setInfo('Yazdırma penceresinde “PDF olarak kaydet”i seç.');
+        return;
       }
+      // Tek dokunuş: dosya üretilir ve paylaşım menüsü açılır (Dosyalara kaydet).
+      await createCertificatePdf(certificate, config, { share: true });
+      setInfo('Paylaşım menüsünden “Dosyalara kaydet”i seçebilirsin.');
     } catch (issue) {
       console.warn('Sertifika PDF oluşturulamadı.', issue);
       setError('PDF oluşturulamadı. Lütfen tekrar dene.');
     } finally {
-      setBusy('none');
-    }
-  };
-
-  const sharePdf = async () => {
-    if (busy !== 'none') return;
-    setBusy('share');
-    setError(null);
-    setInfo(null);
-    try {
-      if (generatedUri) {
-        await shareCertificatePdfFile(generatedUri, certificate.number);
-      } else {
-        await createCertificatePdf(certificate, config, { share: true });
-      }
-      setInfo('Paylaş menüsünden "Dosyalara kaydet" veya Drive’a yükle seçebilirsin.');
-    } catch (issue) {
-      console.warn('Sertifika paylaşılamadı.', issue);
-      setError('Paylaşım açılamadı. Lütfen tekrar dene.');
-    } finally {
-      setBusy('none');
+      setBusy(false);
     }
   };
 
@@ -115,31 +95,16 @@ export default function AdminCertificatePreviewScreen() {
               </Text>
             </GlassCard>
           ) : null}
-          {Platform.OS === 'web' ? (
-            <Button
-              label="PDF OLARAK KAYDET 📄"
-              onPress={() => void createPdf()}
-              loading={busy === 'pdf'}
-              disabled={busy !== 'none'}
-            />
-          ) : (
-            <>
-              <Button
-                label={generatedUri ? 'PDF HAZIR ✅' : 'PDF OLUŞTUR 📄'}
-                onPress={() => void createPdf()}
-                loading={busy === 'pdf'}
-                disabled={busy !== 'none' || generatedUri !== null}
-                variant="glass"
-              />
-              <Button
-                label="PAYLAŞ / KAYDET 📤"
-                onPress={() => void sharePdf()}
-                loading={busy === 'share'}
-                disabled={busy !== 'none'}
-                accessibilityHint="Paylaş menüsünü açar; menüden Dosyalara kaydet seçilebilir"
-              />
-            </>
-          )}
+          <Button
+            label={Platform.OS === 'web' ? 'PDF OLARAK KAYDET' : 'PAYLAŞ / KAYDET'}
+            onPress={() => void savePdf()}
+            loading={busy}
+            accessibilityHint={
+              Platform.OS === 'web'
+                ? 'Yazdırma penceresini açar; oradan PDF olarak kaydedilir'
+                : 'Belgeyi PDF olarak üretip paylaşım menüsünü açar'
+            }
+          />
         </Reveal>
       </View>
     </Screen>

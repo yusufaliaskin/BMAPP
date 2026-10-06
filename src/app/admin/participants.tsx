@@ -22,6 +22,9 @@ import { formatDateTimeTR } from '@/lib/format';
 import { emojiForCode } from '@/lib/participant';
 import { palette, space, type } from '@/theme';
 
+/** Bu sayıdan sonraki satırlar animasyonsuz çizilir (uzun listelerde akıcılık). */
+const REVEAL_LIMIT = 12;
+
 export default function AdminParticipantsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ grade?: string; section?: string }>();
@@ -128,15 +131,15 @@ export default function AdminParticipantsScreen() {
           />
         ) : (
           <View style={styles.list}>
-            {filtered.map((result, index) => (
-              <Reveal key={result.id} delay={Math.min(index * 30, 300)}>
+            {filtered.map((result, index) => {
+              const row = (
                 <PressableScale
                   accessibilityRole="button"
                   accessibilityLabel={`${result.displayName}, ${result.grade}/${result.classId.replace(/^\d/, '')}, ${result.score} puan`}
                   haptic="light"
                   onPress={() => router.push(`/admin/participant/${result.id}`)}
                 >
-                  <GlassCard padded={false}>
+                  <GlassCard padded={false} blur={false}>
                     <View style={styles.row}>
                       <AvatarBubble emoji={emojiForCode(result.participantCode)} size={44} />
                       <View style={styles.rowText}>
@@ -156,8 +159,16 @@ export default function AdminParticipantsScreen() {
                     </View>
                   </GlassCard>
                 </PressableScale>
-              </Reveal>
-            ))}
+              );
+              // Uzun listelerde ilk 12 satır animasyonlu; kalanı doğrudan çizilir (performans).
+              return index < REVEAL_LIMIT ? (
+                <Reveal key={result.id} delay={Math.min(index * 30, 300)}>
+                  {row}
+                </Reveal>
+              ) : (
+                <View key={result.id}>{row}</View>
+              );
+            })}
           </View>
         )}
       </View>

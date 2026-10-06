@@ -152,7 +152,7 @@ export default function AdminAnalyticsScreen() {
         ) : (
           <>
             <Reveal>
-              <GlassCard style={styles.sectionCard}>
+              <GlassCard contentStyle={styles.sectionCard}>
                 <Text style={[type.h3, { color: palette.ink }]}>📊 Genel Özet</Text>
                 <SummaryRow emoji="👥" label="Katılımcı" value={stats.participants} />
                 <SummaryRow emoji="⭐" label="Ortalama puan" value={stats.avgScore} />
@@ -162,7 +162,7 @@ export default function AdminAnalyticsScreen() {
             </Reveal>
 
             <Reveal delay={80}>
-              <GlassCard style={styles.sectionCard}>
+              <GlassCard contentStyle={styles.sectionCard}>
                 <Text style={[type.h3, { color: palette.ink }]}>🏫 Sınıf Bazlı Başarı</Text>
                 <View style={styles.bars}>
                   {stats.perGrade.map((entry) => (
@@ -183,7 +183,7 @@ export default function AdminAnalyticsScreen() {
             </Reveal>
 
             <Reveal delay={140}>
-              <GlassCard style={styles.sectionCard}>
+              <GlassCard contentStyle={styles.sectionCard}>
                 <Text style={[type.h3, { color: palette.ink }]}>📚 Konu Bazlı Başarı</Text>
                 <View style={styles.bars}>
                   {stats.perTopic.map((entry) => (
@@ -205,7 +205,7 @@ export default function AdminAnalyticsScreen() {
 
             {mostWrongQuestion && stats.mostWrong ? (
               <Reveal delay={200}>
-                <GlassCard style={styles.highlightCard}>
+                <GlassCard contentStyle={styles.highlightCard}>
                   <View style={styles.highlightHead}>
                     <View style={styles.highlightBadge}>
                       <Text style={styles.highlightEmoji} maxFontSizeMultiplier={1.1}>
@@ -229,7 +229,7 @@ export default function AdminAnalyticsScreen() {
 
             {mostCorrectQuestion && stats.mostCorrect ? (
               <Reveal delay={240}>
-                <GlassCard style={styles.highlightCard}>
+                <GlassCard contentStyle={styles.highlightCard}>
                   <View style={styles.highlightHead}>
                     <View style={styles.highlightBadge}>
                       <Text style={styles.highlightEmoji} maxFontSizeMultiplier={1.1}>

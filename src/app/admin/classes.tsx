@@ -4,6 +4,7 @@
  * dokununca o şubenin filtrelenmiş katılımcı listesi açılır.
  */
 
+import { useMemo } from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -20,20 +21,38 @@ export default function AdminClassesScreen() {
   const classes = useClasses();
   const results = useResults();
 
+  // Şube başına katılımcı sayısı tek geçişte hesaplanır (104 × N filtre yok).
+  const counts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const result of results) {
+      map.set(result.classId, (map.get(result.classId) ?? 0) + 1);
+    }
+    return map;
+  }, [results]);
+
+  const gradeCounts = useMemo(() => {
+    const map = new Map<number, number>();
+    for (const result of results) {
+      map.set(result.grade, (map.get(result.grade) ?? 0) + 1);
+    }
+    return map;
+  }, [results]);
+
   return (
     <Screen title="Sınıflar" onBack={() => router.back()} scroll>
       <View style={styles.container}>
         <Text style={[type.caption, { color: palette.inkFaint }]}>
-          Kutudaki sayı = o şubeden test çözen katılımcı sayısı.
+          Kutudaki sayı = o şubeden test çözen katılımcı sayısı. Kutuya dokununca o
+          şubenin katılımcıları açılır.
         </Text>
         {GRADES.map((grade, gradeIndex) => {
           const gradeClasses = classes
             .filter((c) => c.grade === grade && c.isActive)
             .sort((a, b) => a.section.localeCompare(b.section));
-          const gradeCount = results.filter((result) => result.grade === grade).length;
+          const gradeCount = gradeCounts.get(grade) ?? 0;
           return (
             <Reveal key={grade} delay={gradeIndex * 60}>
-              <GlassCard style={styles.gradeCard}>
+              <GlassCard contentStyle={styles.gradeCard}>
                 <View style={styles.headRow}>
                   <Text style={[type.h3, { color: palette.ink }]}>🏫 {grade}. Sınıflar</Text>
                   <Text style={[type.caption, { color: palette.inkSoft }]}>
@@ -42,7 +61,7 @@ export default function AdminClassesScreen() {
                 </View>
                 <View style={styles.grid}>
                   {gradeClasses.map((item) => {
-                    const count = results.filter((result) => result.classId === item.id).length;
+                    const count = counts.get(item.id) ?? 0;
                     return (
                       <PressableScale
                         key={item.id}
@@ -54,7 +73,7 @@ export default function AdminClassesScreen() {
                         }
                         style={styles.cell}
                       >
-                        <GlassCard padded={false} style={styles.cellCard}>
+                        <GlassCard padded={false} blur={false} style={styles.cellCard}>
                           <View style={styles.cellInner}>
                             <Text
                               style={[

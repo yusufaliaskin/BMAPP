@@ -23,6 +23,9 @@ import type { Grade } from '@/domain/models';
 import { emojiForCode } from '@/lib/participant';
 import { glassSurface, palette, radius, space, type } from '@/theme';
 
+/** Bu sayıdan sonraki satırlar animasyonsuz çizilir (performans). */
+const REVEAL_LIMIT = 12;
+
 const GRADE_OPTIONS = [
   { value: 1, label: '1' },
   { value: 2, label: '2' },
@@ -126,8 +129,8 @@ export default function AdminRankingsScreen() {
                   c.period === config.period,
               );
               const isTop3 = entry.rank <= 3;
-              return (
-                <Reveal key={entry.resultId} delay={Math.min(100 + index * 30, 360)}>
+              const row = (
+                <>
                   <View style={[styles.row, isTop3 ? styles.topRow : glassSurface('subtle')]}>
                     <View style={styles.rowMain}>
                       <View style={[styles.rankBubble, isTop3 ? styles.rankBubbleTop : null]}>
@@ -155,12 +158,25 @@ export default function AdminRankingsScreen() {
                     </View>
                     <View style={styles.rowMeta}>
                       {certificate ? (
-                        <Text
-                          style={[type.caption, styles.certChip, { color: palette.primaryDeep }]}
-                          numberOfLines={1}
+                        <PressableScale
+                          accessibilityRole="button"
+                          accessibilityLabel={`${certificate.number} belgesini görüntüle`}
+                          accessibilityHint="Belge önizlemesini ve PDF seçeneklerini açar"
+                          haptic="light"
+                          onPress={() =>
+                            router.push(
+                              `/admin/certificate?participantCode=${certificate.participantCode}`,
+                            )
+                          }
+                          style={[styles.certChip, glassSurface('strong')]}
                         >
-                          🎓 {certificate.number}
-                        </Text>
+                          <Text
+                            style={[type.caption, { color: palette.primaryDeep }]}
+                            numberOfLines={1}
+                          >
+                            🎓 {certificate.number}
+                          </Text>
+                        </PressableScale>
                       ) : (
                         <Text style={[type.caption, { color: palette.inkFaint }]}>
                           sertifika bekliyor
@@ -211,7 +227,15 @@ export default function AdminRankingsScreen() {
                       </View>
                     </View>
                   ) : null}
+                </>
+              );
+              // Uzun listelerde ilk 12 satır animasyonlu; kalanı doğrudan çizilir.
+              return index < REVEAL_LIMIT ? (
+                <Reveal key={entry.resultId} delay={Math.min(100 + index * 30, 360)}>
+                  {row}
                 </Reveal>
+              ) : (
+                <View key={entry.resultId}>{row}</View>
               );
             })}
           </View>
@@ -252,6 +276,11 @@ const styles = StyleSheet.create({
   },
   certChip: {
     flexShrink: 1,
+    maxWidth: '70%',
+    borderRadius: radius.pill,
+    paddingHorizontal: space.md,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   topRow: {
     backgroundColor: palette.rewardSoft,

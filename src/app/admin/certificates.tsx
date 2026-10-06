@@ -19,6 +19,9 @@ import { createCertificatePdf } from '@/lib/certificate-pdf';
 import { formatDateTR } from '@/lib/format';
 import { glassSurface, medal, palette, radius, space, type } from '@/theme';
 
+/** Bu sayıdan sonraki satırlar animasyonsuz çizilir (performans). */
+const REVEAL_LIMIT = 12;
+
 const MEDAL_TONE: Record<string, string> = {
   gold: medal.gold,
   silver: medal.silver,
@@ -69,10 +72,17 @@ export default function AdminCertificatesScreen() {
             onAction={() => router.push('/admin/rankings')}
           />
         ) : (
-          <View style={styles.list}>
-            {sorted.map((certificate, index) => (
-              <Reveal key={certificate.id} delay={Math.min(index * 40, 320)}>
-                <GlassCard padded={false}>
+          <>
+            <Text style={[type.caption, { color: palette.inkFaint }]}>
+              {sorted.length} belge ·{' '}
+              {sorted.filter((c) => c.medal === 'gold').length} altın ·{' '}
+              {sorted.filter((c) => c.medal === 'silver').length} gümüş ·{' '}
+              {sorted.filter((c) => c.medal === 'bronze').length} bronz
+            </Text>
+            <View style={styles.list}>
+            {sorted.map((certificate, index) => {
+              const row = (
+                <GlassCard padded={false} blur={false}>
                   <PressableScale
                     accessibilityRole="button"
                     accessibilityLabel={`${certificate.number} ${certificate.medal ? MEDAL_LABEL[certificate.medal] : 'Katılım'} belgesini önizle`}
@@ -97,8 +107,8 @@ export default function AdminCertificatesScreen() {
                           {certificate.displayName}
                         </Text>
                         <Text style={[type.caption, { color: palette.inkFaint }]} numberOfLines={2}>
-                          {certificate.medal ? MEDAL_LABEL[certificate.medal] : 'Katılım'} · {certificate.number} ·{' '}
-                          {certificate.grade}/{certificate.section} ·{' '}
+                          {certificate.medal ? MEDAL_LABEL[certificate.medal] : 'Katılım'} ·{' '}
+                          {certificate.number} · {certificate.grade}/{certificate.section} ·{' '}
                           {formatDateTR(certificate.issuedAt)}
                         </Text>
                       </View>
@@ -121,9 +131,18 @@ export default function AdminCertificatesScreen() {
                     </PressableScale>
                   </View>
                 </GlassCard>
-              </Reveal>
-            ))}
-          </View>
+              );
+              // Uzun listelerde ilk 12 satır animasyonlu; kalanı doğrudan çizilir.
+              return index < REVEAL_LIMIT ? (
+                <Reveal key={certificate.id} delay={Math.min(index * 40, 320)}>
+                  {row}
+                </Reveal>
+              ) : (
+                <View key={certificate.id}>{row}</View>
+              );
+            })}
+            </View>
+          </>
         )}
       </View>
     </Screen>

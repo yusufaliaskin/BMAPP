@@ -20,6 +20,9 @@ import { useQuestions, useTopics } from '@/data/hooks';
 import type { Difficulty, Grade } from '@/domain/models';
 import { palette, radius, space, type } from '@/theme';
 
+/** Bu sayıdan sonraki satırlar animasyonsuz çizilir (performans). */
+const REVEAL_LIMIT = 12;
+
 const DIFFICULTY_LABEL: Record<Difficulty, string> = {
   easy: 'Kolay',
   'easy-medium': 'Kolay-Orta',
@@ -86,12 +89,16 @@ export default function AdminQuestionsScreen() {
             message="Bu filtreyle eşleşen soru yok."
           />
         ) : (
-          <View style={styles.list}>
-            {filtered.map((question, index) => {
-              const topic = topics.find((t) => t.id === question.topicId);
-              return (
-                <Reveal key={question.id} delay={Math.min(index * 25, 250)}>
-                  <GlassCard padded={false}>
+          <>
+            <Text style={[type.caption, { color: palette.inkFaint }]}>
+              {filtered.length} soru gösteriliyor · {filtered.filter((q) => q.isActive).length}{' '}
+              aktif
+            </Text>
+            <View style={styles.list}>
+              {filtered.map((question, index) => {
+                const topic = topics.find((t) => t.id === question.topicId);
+                const row = (
+                  <GlassCard padded={false} blur={false}>
                     <View style={[styles.row, !question.isActive ? styles.inactive : null]}>
                       <PressableScale
                         accessibilityRole="button"
@@ -122,10 +129,17 @@ export default function AdminQuestionsScreen() {
                       />
                     </View>
                   </GlassCard>
-                </Reveal>
-              );
-            })}
-          </View>
+                );
+                return index < REVEAL_LIMIT ? (
+                  <Reveal key={question.id} delay={Math.min(index * 25, 250)}>
+                    {row}
+                  </Reveal>
+                ) : (
+                  <View key={question.id}>{row}</View>
+                );
+              })}
+            </View>
+          </>
         )}
       </View>
     </Screen>
