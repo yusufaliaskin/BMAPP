@@ -44,3 +44,15 @@ example
 
 # QA
 .qa-shots/
+.playwright-mcp/
+
+# yerel yedekler / dışa aktarımlar (veritabanı verisi ASLA depoya girmez)
+bilincli-kahraman-*.csv
+bilincli-kahraman-*.json
+backups/
+*.sqlite
+*.db
+
+# geçici dosyalar
+*.log
+.tmp-*
